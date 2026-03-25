@@ -1,0 +1,129 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    // Collection: users
+    // Fields: uid, firstName, lastName, displayName, email, phoneNumber, photoURL, role, createdAt
+    //
+    // Collection: services
+    // Fields: id, name, description, price, duration, image
+    //
+    // Collection: bookings
+    // Fields: id, userId, userName, userEmail, serviceId, serviceName, category, date, time, status, createdAt
+    //
+    // Collection: gallery
+    // Fields: id, title, imageUrl, category
+    //
+    // Collection: contacts
+    // Fields: name, email, subject, message, createdAt
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && 
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+         exists(/databases/$(database)/documents/authorized_admins/$(request.auth.token.email)) ||
+         (request.auth.token.email == "osiamijnr@gmail.com"));
+    }
+
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    function isValidEmail(email) {
+      return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    function isValidPhone(phone) {
+      return phone is string && phone.size() >= 10 && phone.size() <= 20;
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+    function isValidUser(data) {
+      return data.uid is string && 
+             data.firstName is string && data.firstName.size() > 0 && data.firstName.size() < 50 &&
+             data.lastName is string && data.lastName.size() > 0 && data.lastName.size() < 50 &&
+             data.email is string && isValidEmail(data.email) &&
+             data.phoneNumber is string && isValidPhone(data.phoneNumber) &&
+             data.role in ['client', 'admin'];
+    }
+
+    function isValidAuthorizedAdmin(data) {
+      return data.email is string && isValidEmail(data.email) &&
+             data.addedBy is string &&
+             data.createdAt is timestamp;
+    }
+
+    function isValidBooking(data) {
+      return data.userId is string && 
+             (data.userId == request.auth.uid || isAdmin()) &&
+             data.userName is string && data.userName.size() < 100 &&
+             data.userEmail is string && isValidEmail(data.userEmail) &&
+             data.serviceId is string &&
+             data.serviceName is string && data.serviceName.size() < 100 &&
+             data.category is string && data.category.size() < 50 &&
+             data.date is string &&
+             data.time is string && data.time.size() < 20 &&
+             data.status in ['pending', 'confirmed', 'cancelled', 'completed', 'rescheduled'];
+    }
+
+    function isValidContact(data) {
+      return data.name is string && data.name.size() > 0 && data.name.size() < 100 &&
+             data.email is string && isValidEmail(data.email) &&
+             data.message is string && data.message.size() > 0 && data.message.size() < 2000;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isOwner(userId) && isValidUser(request.resource.data) && request.resource.data.role == 'client';
+      allow update: if (isOwner(userId) && isValidUser(request.resource.data) && request.resource.data.role == resource.data.role) ||
+                    (isAdmin() && isValidUser(request.resource.data));
+      allow delete: if isAdmin();
+    }
+
+    match /authorized_admins/{email} {
+      allow read, write: if isAdmin();
+    }
+
+    match /services/{serviceId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /bookings/{bookingId} {
+      allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid && isValidBooking(request.resource.data);
+      allow update: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin()) && isValidBooking(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    match /gallery/{styleId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /contacts/{contactId} {
+      allow read: if isAdmin();
+      allow create: if isValidContact(request.resource.data);
+      allow update, delete: if isAdmin();
+    }
+  }
+}

@@ -1,0 +1,101 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile information",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "firstName": { "type": "string" },
+        "lastName": { "type": "string" },
+        "displayName": { "type": "string" },
+        "email": { "type": "string" },
+        "phoneNumber": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "role": { "type": "string", "enum": ["client", "admin"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "firstName", "lastName"]
+    },
+    "Service": {
+      "title": "Service",
+      "description": "Barbershop service details",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "price": { "type": "number" },
+        "duration": { "type": "number" },
+        "image": { "type": "string" }
+      },
+      "required": ["name", "price"]
+    },
+    "Booking": {
+      "title": "Booking",
+      "description": "Appointment booking details",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "userEmail": { "type": "string" },
+        "serviceId": { "type": "string" },
+        "serviceName": { "type": "string" },
+        "category": { "type": "string" },
+        "date": { "type": "string", "format": "date" },
+        "time": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "confirmed", "cancelled"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "serviceId", "date", "time"]
+    },
+    "GalleryItem": {
+      "title": "GalleryItem",
+      "description": "Haircut style showcase",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "category": { "type": "string" }
+      },
+      "required": ["title", "imageUrl"]
+    },
+    "ContactMessage": {
+      "title": "ContactMessage",
+      "description": "User inquiry from contact form",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "subject": { "type": "string" },
+        "message": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "email", "message"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles"
+    },
+    "/services/{serviceId}": {
+      "schema": "Service",
+      "description": "Available services"
+    },
+    "/bookings/{bookingId}": {
+      "schema": "Booking",
+      "description": "Customer appointments"
+    },
+    "/gallery/{styleId}": {
+      "schema": "GalleryItem",
+      "description": "Haircut styles gallery"
+    },
+    "/contacts/{contactId}": {
+      "schema": "ContactMessage",
+      "description": "User inquiries"
+    }
+  }
+}
