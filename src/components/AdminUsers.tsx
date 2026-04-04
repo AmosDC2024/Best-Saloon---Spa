@@ -4,6 +4,7 @@ import { collection, query, onSnapshot, setDoc, doc, deleteDoc, serverTimestamp,
 import { db, auth } from '../firebase';
 import { handleFirestoreError, OperationType } from '../lib/firebaseUtils';
 import { Mail, Shield, Trash2, Plus, UserPlus, AlertCircle, CheckCircle2, Loader2, User } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface AuthorizedAdmin {
   email: string;
@@ -95,36 +96,41 @@ export default function AdminUsers() {
       .map(a => a.email.toLowerCase());
 
     if (email === primaryAdmin) {
-      alert('The primary admin cannot be removed.');
+      toast.error('The primary admin cannot be removed.');
       return;
     }
 
     // Only super admins can delete others
     if (!currentUserEmail || !superAdmins.includes(currentUserEmail)) {
-      alert('Only the primary admin and the second designated admin have permission to remove other admins.');
+      toast.error('Only the primary admin and the second designated admin have permission to remove other admins.');
       return;
     }
 
-    if (!window.confirm(`Are you sure you want to remove ${email} from the authorized admins list?`)) return;
-
-    setActionLoading(true);
-    try {
-      await deleteDoc(doc(db, 'authorized_admins', email));
-      
-      // Also update user role if they exist
-      const existingUser = appUsers.find(u => u.email.toLowerCase() === email);
-      if (existingUser) {
-        await updateDoc(doc(db, 'users', existingUser.uid), {
-          role: 'client'
-        });
+    toast(`Are you sure you want to remove ${email}?`, {
+      action: {
+        label: 'Remove',
+        onClick: async () => {
+          setActionLoading(true);
+          try {
+            await deleteDoc(doc(db, 'authorized_admins', email));
+            
+            // Also update user role if they exist
+            const existingUser = appUsers.find(u => u.email.toLowerCase() === email);
+            if (existingUser) {
+              await updateDoc(doc(db, 'users', existingUser.uid), {
+                role: 'client'
+              });
+            }
+            
+            toast.success(`${email} has been removed from admin list.`);
+          } catch (error) {
+            handleFirestoreError(error, OperationType.DELETE, `authorized_admins/${email}`);
+          } finally {
+            setActionLoading(false);
+          }
+        }
       }
-      
-      setMessage({ type: 'success', text: `${email} has been removed from admin list.` });
-    } catch (error) {
-      handleFirestoreError(error, OperationType.DELETE, `authorized_admins/${email}`);
-    } finally {
-      setActionLoading(false);
-    }
+    });
   };
 
   const promoteToAdmin = async (user: AppUser) => {

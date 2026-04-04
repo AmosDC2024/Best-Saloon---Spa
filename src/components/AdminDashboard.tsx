@@ -7,6 +7,7 @@ import { format } from 'date-fns';
 import { Mail, Calendar, CheckCircle, Clock, Trash2, X, MessageSquare, User, TrendingUp, Inbox, ShieldCheck, Scissors } from 'lucide-react';
 import AdminUsers from './AdminUsers';
 import AdminSchedule from './AdminSchedule';
+import { toast } from 'sonner';
 
 interface Booking {
   id: string;
@@ -88,7 +89,7 @@ export default function AdminDashboard() {
       // If confirming, send email
       if (status === 'confirmed' && booking) {
         try {
-          await fetch('/api/send-confirmation', {
+          const response = await fetch('/api/send-confirmation', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -100,8 +101,15 @@ export default function AdminDashboard() {
               time: booking.time,
             }),
           });
+          
+          if (!response.ok) {
+            const errorData = await response.json();
+            console.error('Email API failed:', errorData);
+            toast.error(`Booking confirmed in database, but email failed: ${errorData.error || 'Unknown error'}`);
+          }
         } catch (emailError) {
           console.error('Failed to send confirmation email:', emailError);
+          toast.error('Booking confirmed in database, but could not reach email server.');
         }
       }
     } catch (error) {
@@ -125,10 +133,30 @@ export default function AdminDashboard() {
         rescheduleDeclined: false
       });
 
-      // 2. Show success state in modal
+      // 2. Send Reschedule Email
+      try {
+        await fetch('/api/send-reschedule', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userName: rescheduleModal.booking.userName,
+            userEmail: rescheduleModal.booking.userEmail,
+            serviceName: rescheduleModal.booking.serviceName,
+            originalDate: rescheduleModal.booking.date,
+            originalTime: rescheduleModal.booking.time,
+            suggestedDate: suggestedDate,
+            suggestedTime: suggestedTime,
+            message: rescheduleMessage,
+          }),
+        });
+      } catch (emailError) {
+        console.error('Failed to send reschedule email:', emailError);
+      }
+
+      // 3. Show success state in modal
       setRescheduleSuccess(true);
       
-      // 3. Show success notification toast as well
+      // 4. Show success notification toast as well
       const successMsg = document.createElement('div');
       successMsg.className = 'fixed top-24 right-6 z-[100] bg-emerald-500 text-black px-6 py-4 rounded-2xl font-black uppercase tracking-widest shadow-2xl animate-bounce';
       successMsg.innerHTML = 'Reschedule Request Sent to Client Panel!';
@@ -146,7 +174,7 @@ export default function AdminDashboard() {
 
     } catch (error) {
       console.error('Failed to reschedule:', error);
-      alert('We encountered an error while trying to reschedule. Please check your internet connection and try again.');
+      toast.error('We encountered an error while trying to reschedule. Please check your internet connection and try again.');
     } finally {
       setIsRescheduling(false);
     }
@@ -197,11 +225,11 @@ export default function AdminDashboard() {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email: auth.currentUser.email }),
                   });
-                  if (res.ok) alert('Testing link sent to your email!');
-                  else alert('Failed to send link.');
+                  if (res.ok) toast.success('Testing link sent to your email!');
+                  else toast.error('Failed to send link.');
                 } catch (err) {
                   console.error(err);
-                  alert('Error sending link.');
+                  toast.error('Error sending link.');
                 }
               }}
               className="px-6 py-3 bg-white/5 border border-white/10 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-white/10 transition-all flex items-center gap-2"

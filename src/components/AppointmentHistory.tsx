@@ -7,6 +7,7 @@ import { onAuthStateChanged, User as FirebaseUser, signOut } from 'firebase/auth
 import { format } from 'date-fns';
 import { cn } from '../lib/utils';
 import { handleFirestoreError, OperationType } from '../lib/firebaseUtils';
+import { toast } from 'sonner';
 
 export default function AppointmentHistory() {
   const [user, setUser] = useState<FirebaseUser | null>(null);
@@ -32,13 +33,13 @@ export default function AppointmentHistory() {
           time: booking.rescheduleSuggestedTime,
           rescheduleAccepted: true
         });
-        alert('Reschedule accepted! The admin will now confirm your appointment for the new time.');
+        toast.success('Reschedule accepted! The admin will now confirm your appointment for the new time.');
       } else {
         await updateDoc(doc(db, 'bookings', bookingId), {
           status: 'cancelled',
           rescheduleDeclined: true
         });
-        alert('Reschedule request declined. The appointment has been cancelled.');
+        toast.error('Reschedule request declined. The appointment has been cancelled.');
       }
     } catch (error) {
       handleFirestoreError(error, OperationType.UPDATE, `bookings/${bookingId}`);

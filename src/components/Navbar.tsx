@@ -36,6 +36,10 @@ export default function Navbar({ onOpenGallery, onOpenBooking, onOpenContact, on
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [totalPending, setTotalPending] = useState(0);
+  const [lastSeenCount, setLastSeenCount] = useState(() => {
+    return parseInt(localStorage.getItem('admin_last_seen_count') || '0');
+  });
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const audioRef = React.useRef<HTMLAudioElement | null>(null);
@@ -69,36 +73,56 @@ export default function Navbar({ onOpenGallery, onOpenBooking, onOpenContact, on
       const messagesQuery = query(collection(db, 'contacts'), where('status', '==', 'new'));
 
       const unsubBookings = onSnapshot(bookingsQuery, (snapshot) => {
-        if (isInitialBookings) {
-          setUnreadCount(prev => prev + snapshot.size);
+        const count = snapshot.size;
+        
+        if (isInitialBookings || !initialBookingsReceived.current) {
+          setTotalPending(prev => prev + count);
           isInitialBookings = false;
+          initialBookingsReceived.current = true;
           return;
         }
 
         const added = snapshot.docChanges().filter(change => change.type === 'added');
         if (added.length > 0) {
+          // Play sound on all devices where the admin is logged in
           audioRef.current?.play().catch(e => console.log('Audio play failed:', e));
-          setUnreadCount(prev => prev + added.length);
+          setTotalPending(prev => prev + added.length);
           setToastMessage('New booking request received!');
           setShowToast(true);
           setTimeout(() => setShowToast(false), 5000);
         }
+        
+        // If items were removed (confirmed/cancelled), update totalPending
+        const removed = snapshot.docChanges().filter(change => change.type === 'removed');
+        if (removed.length > 0) {
+          setTotalPending(prev => Math.max(0, prev - removed.length));
+        }
       });
 
       const unsubMessages = onSnapshot(messagesQuery, (snapshot) => {
-        if (isInitialMessages) {
-          setUnreadCount(prev => prev + snapshot.size);
+        const count = snapshot.size;
+
+        if (isInitialMessages || !initialMessagesReceived.current) {
+          setTotalPending(prev => prev + count);
           isInitialMessages = false;
+          initialMessagesReceived.current = true;
           return;
         }
 
         const added = snapshot.docChanges().filter(change => change.type === 'added');
         if (added.length > 0) {
+          // Play sound on all devices where the admin is logged in
           audioRef.current?.play().catch(e => console.log('Audio play failed:', e));
-          setUnreadCount(prev => prev + added.length);
+          setTotalPending(prev => prev + added.length);
           setToastMessage('New contact message received!');
           setShowToast(true);
           setTimeout(() => setShowToast(false), 5000);
+        }
+
+        // If items were removed (marked read), update totalPending
+        const removed = snapshot.docChanges().filter(change => change.type === 'removed');
+        if (removed.length > 0) {
+          setTotalPending(prev => Math.max(0, prev - removed.length));
         }
       });
 
@@ -108,8 +132,9 @@ export default function Navbar({ onOpenGallery, onOpenBooking, onOpenContact, on
       const userBookingsQuery = query(collection(db, 'bookings'), where('userId', '==', user.uid));
       
       const unsubUser = onSnapshot(userBookingsQuery, (snapshot) => {
-        if (isInitialUser) {
+        if (isInitialUser || !initialUserReceived.current) {
           isInitialUser = false;
+          initialUserReceived.current = true;
           return;
         }
 
@@ -131,6 +156,13 @@ export default function Navbar({ onOpenGallery, onOpenBooking, onOpenContact, on
 
     return () => unsubscribes.forEach(unsub => unsub());
   }, [user, isAdmin]);
+
+  useEffect(() => {
+    if (isAdmin) {
+      const count = Math.max(0, totalPending - lastSeenCount);
+      setUnreadCount(count);
+    }
+  }, [totalPending, lastSeenCount, isAdmin]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -183,7 +215,7 @@ export default function Navbar({ onOpenGallery, onOpenBooking, onOpenContact, on
       },
       alwaysShow: true
     },
-    { name: 'WhatsApp', action: () => window.open('https://wa.me/2348068059823', '_blank'), hideOnAdmin: true, hideOnDesktop: true },
+    { name: 'WhatsApp', action: () => window.open('https://api.whatsapp.com/send?phone=2348068059823&text=Hi%20Best%20Salon%20%26%20SPA!%20I%27d%20like%20to%20make%20an%20inquiry.', '_blank'), hideOnAdmin: true, hideOnDesktop: true },
   ];
 
   const filteredLinks = navLinks.filter(link => {
@@ -208,17 +240,21 @@ export default function Navbar({ onOpenGallery, onOpenBooking, onOpenContact, on
         <a href="#home" className="flex items-center gap-2 group">
           <div className="relative">
             <div className="w-10 h-10 bg-amber-500 rounded-lg flex items-center justify-center overflow-hidden group-hover:rotate-12 transition-transform">
+              <Scissors className="w-6 h-6 text-black absolute z-0" />
               <img 
                 src="https://ais-pre-htn43e6zff3d6tqo54gu7b-182291592896.europe-west2.run.app/api/attachments/67e26880-9941-4712-98e3-086574f884a4" 
                 alt="Logo" 
-                className="w-full h-full object-cover mix-blend-multiply"
+                className="w-full h-full object-cover mix-blend-multiply relative z-10"
                 referrerPolicy="no-referrer"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).style.display = 'none';
+                }}
               />
             </div>
             <Sparkles className="w-4 h-4 text-amber-500 absolute -top-1 -right-1 animate-pulse" />
           </div>
-          <span className="text-xl font-bold tracking-tighter text-white uppercase flex items-center gap-1 leading-none">
-            <span className="font-arcade text-[16px] text-amber-500 leading-none">BEST</span> Salon & SPA
+          <span className="font-arcade text-[10px] sm:text-xs md:text-sm lg:text-lg text-amber-500 leading-none uppercase tracking-tighter">
+            best salon services & creative hub
           </span>
         </a>
 
@@ -248,10 +284,12 @@ export default function Navbar({ onOpenGallery, onOpenBooking, onOpenContact, on
               <div className="relative group/notif">
                 <button 
                   onClick={() => {
-                    setUnreadCount(0);
                     if (isAdmin) {
+                      setLastSeenCount(totalPending);
+                      localStorage.setItem('admin_last_seen_count', totalPending.toString());
                       if (!isAdminView) onToggleAdmin();
                     } else {
+                      setUnreadCount(0);
                       onOpenHistory();
                     }
                   }}
@@ -366,10 +404,12 @@ export default function Navbar({ onOpenGallery, onOpenBooking, onOpenContact, on
                     <div className="relative">
                       <button 
                         onClick={() => {
-                          setUnreadCount(0);
                           if (isAdmin) {
+                            setLastSeenCount(totalPending);
+                            localStorage.setItem('admin_last_seen_count', totalPending.toString());
                             if (!isAdminView) onToggleAdmin();
                           } else {
+                            setUnreadCount(0);
                             onOpenHistory();
                           }
                           setIsOpen(false);

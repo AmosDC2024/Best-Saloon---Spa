@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Calendar, Clock, User, CheckCircle2, Scissors, MessageSquare, LogIn, Sparkles } from 'lucide-react';
+import { Calendar, Clock, User, CheckCircle2, Scissors, MessageSquare, LogIn, Sparkles, Loader2 } from 'lucide-react';
 import { auth, db } from '../firebase';
 import { collection, addDoc, query, where, onSnapshot, serverTimestamp, getDocFromServer, doc, getDoc } from 'firebase/firestore';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
@@ -8,6 +8,7 @@ import { handleFirestoreError, OperationType } from '../lib/firebaseUtils';
 import { format, addDays, startOfToday, isSameDay } from 'date-fns';
 import { cn } from '../lib/utils';
 import AuthModal from './AuthModal';
+import { toast } from 'sonner';
 
 const timeSlots = [
   '09:00 AM', '10:00 AM', '11:00 AM', '12:00 PM',
@@ -75,19 +76,6 @@ export default function Booking({ onOpenAuth }: BookingProps) {
 
   const next7Days = Array.from({ length: 7 }, (_, i) => addDays(startOfToday(), i));
 
-  useEffect(() => {
-    async function testConnection() {
-      try {
-        await getDocFromServer(doc(db, 'test', 'connection'));
-      } catch (error) {
-        if (error instanceof Error && error.message.includes('the client is offline')) {
-          console.error("Please check your Firebase configuration. ");
-        }
-      }
-    }
-    testConnection();
-  }, []);
-
   const handleBooking = async () => {
     if (!user) {
       onOpenAuth('login');
@@ -95,7 +83,7 @@ export default function Booking({ onOpenAuth }: BookingProps) {
     }
 
     if (!selectedTime) {
-      alert('Please select a time slot');
+      toast.error('Please select a time slot');
       return;
     }
 
@@ -150,15 +138,15 @@ export default function Booking({ onOpenAuth }: BookingProps) {
       setTimeout(() => setSuccess(false), 5000);
     } catch (error) {
       console.error('Booking error details:', error);
-      alert(`Failed to book appointment: ${error instanceof Error ? error.message : 'Unknown error'}. Please check your connection and try again.`);
+      toast.error(`Failed to book appointment: ${error instanceof Error ? error.message : 'Unknown error'}. Please check your connection and try again.`);
     } finally {
       setLoading(false);
     }
   };
 
   const handleWhatsApp = () => {
-    const message = `Hi! I'd like to book a ${selectedService.name} (${selectedCategory.name}) on ${format(selectedDate, 'PPP')} at ${selectedTime}.`;
-    const url = `https://wa.me/2348104922415?text=${encodeURIComponent(message)}`;
+    const message = `Hi best salon services & creative hub! I'd like to book a ${selectedService.name} (${selectedCategory.name}) on ${format(selectedDate, 'PPP')} at ${selectedTime}. My name is ${userData?.displayName || user?.displayName || 'a client'}.`;
+    const url = `https://api.whatsapp.com/send?phone=2348068059823&text=${encodeURIComponent(message)}`;
     window.open(url, '_blank');
   };
 
@@ -352,7 +340,14 @@ export default function Booking({ onOpenAuth }: BookingProps) {
                       disabled={loading}
                       className="flex-1 py-5 bg-amber-500 text-black font-black rounded-2xl hover:bg-amber-400 transition-all disabled:opacity-50 flex items-center justify-center gap-2 uppercase tracking-widest"
                     >
-                      {loading ? 'Processing...' : 'Confirm Booking'}
+                      {loading ? (
+                        <>
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                          Processing...
+                        </>
+                      ) : (
+                        'Confirm Booking'
+                      )}
                     </button>
                     <button
                       onClick={handleWhatsApp}

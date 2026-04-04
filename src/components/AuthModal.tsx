@@ -8,7 +8,7 @@ import {
   updateProfile,
   sendPasswordResetEmail
 } from 'firebase/auth';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -54,6 +54,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login', admi
         }
         await sendPasswordResetEmail(auth, email);
         setSuccess('We\'ve sent a password reset link to your email. Please check your inbox (and spam folder).');
+        setEmail('');
         return;
       }
 
@@ -67,25 +68,56 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login', admi
         if (password.length < 6) {
           throw new Error('For your security, your password must be at least 6 characters long.');
         }
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+
+        let userCredential;
+        try {
+          userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        } catch (error: any) {
+          if (error.code === 'auth/email-already-in-use') {
+            // If email exists, try to sign in and then ensure firestore doc exists
+            try {
+              userCredential = await signInWithEmailAndPassword(auth, email, password);
+            } catch (signInError: any) {
+              // If sign in fails, it might be a wrong password, so we re-throw the original error
+              // but with a clearer message
+              throw new Error('This email address is already associated with an account. Try logging in instead.');
+            }
+          } else {
+            throw error;
+          }
+        }
+
         const user = userCredential.user;
+        const displayName = `${firstName} ${lastName}`;
 
         await updateProfile(user, {
-          displayName: `${firstName} ${lastName}`
+          displayName
         });
 
-        // Save user data to Firestore
+        // Save user data to Firestore - Use setDoc with merge: true to ensure we don't overwrite if it exists,
+        // but we ensure it DOES exist.
         await setDoc(doc(db, 'users', user.uid), {
           uid: user.uid,
           firstName,
           lastName,
-          displayName: `${firstName} ${lastName}`,
-          email,
+          displayName,
+          email: email.toLowerCase(),
           phoneNumber: phone,
           role: 'client',
-          createdAt: new Date().toISOString()
-        });
-        setSuccess('Account created successfully! Welcome to Best Salon & SPA.');
+          createdAt: serverTimestamp()
+        }, { merge: true });
+
+        setSuccess(
+          <span className="flex items-center gap-1">
+            Account ready! Welcome to <span className="font-arcade text-amber-500 uppercase">best salon services & creative hub</span>.
+          </span> as unknown as string
+        );
+        // Clear all fields
+        setEmail('');
+        setPassword('');
+        setFirstName('');
+        setLastName('');
+        setPhone('');
       } else {
         if (!email || !password) {
           throw new Error('Please provide both your email and password to log in.');
@@ -108,21 +140,31 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login', admi
           }
         }
         setSuccess('Login successful! Redirecting...');
+        // Clear all fields
+        setEmail('');
+        setPassword('');
+        setFirstName('');
+        setLastName('');
+        setPhone('');
       }
       setTimeout(() => onClose(), 1500);
     } catch (err: any) {
-      console.error('Auth error:', err);
+      console.error('Auth error full object:', JSON.stringify(err, Object.getOwnPropertyNames(err)));
       let message = 'Something went wrong. Please check your connection and try again.';
       
-      if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
-        message = 'The email or password you entered is incorrect. Please try again.';
-      } else if (err.code === 'auth/email-already-in-use') {
+      const errorCode = err.code || (err.message?.includes('auth/') ? err.message.match(/auth\/[a-z-]+/)?.[0] : null);
+
+      if (errorCode === 'auth/user-not-found') {
+        message = 'We couldn\'t find an account with that email address. Please check the spelling or register for a new account.';
+      } else if (errorCode === 'auth/wrong-password' || errorCode === 'auth/invalid-credential' || err.message?.includes('invalid-credential')) {
+        message = 'The password you entered is incorrect. Please try again or reset your password.';
+      } else if (errorCode === 'auth/email-already-in-use') {
         message = 'This email address is already associated with an account. Try logging in instead.';
-      } else if (err.code === 'auth/invalid-email') {
+      } else if (errorCode === 'auth/invalid-email') {
         message = 'Please enter a valid email address.';
-      } else if (err.code === 'auth/weak-password') {
+      } else if (errorCode === 'auth/weak-password') {
         message = 'Your password is too weak. Please use at least 6 characters.';
-      } else if (err.code === 'auth/too-many-requests') {
+      } else if (errorCode === 'auth/too-many-requests') {
         message = 'Too many failed login attempts. Please try again later for your security.';
       } else if (err.message) {
         message = err.message;

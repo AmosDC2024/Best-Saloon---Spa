@@ -1,15 +1,29 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Press+Start+2P&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 @import "tailwindcss";
+
+@font-face {
+  font-family: 'ArcadeAmerica';
+  src: url('/fonts/arcade-america.woff2') format('woff2'),
+       url('/fonts/arcade-america.woff') format('woff'),
+       url('/fonts/arcade-america.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
 
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-arcade: "Press Start 2P", system-ui, sans-serif;
+  --font-arcade: "ArcadeAmerica", "Courier New", Courier, monospace, cursive, system-ui, sans-serif;
+  --font-arcade-kern: "ArcadeAmerica", "Courier New", Courier, monospace;
 }
 
 @layer base {
   html {
     scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
     @apply antialiased;
   }
   
@@ -20,6 +34,13 @@
 
   h1, h2, h3, h4, h5, h6 {
     @apply tracking-tighter font-black uppercase;
+    text-rendering: optimizeLegibility;
+  }
+
+  .font-arcade {
+    font-feature-settings: "kern" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   /* Custom Scrollbar */

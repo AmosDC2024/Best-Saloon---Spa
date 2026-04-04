@@ -2,25 +2,6 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     // ===============================================================
-    // Assumed Data Model
-    // ===============================================================
-    // Collection: users
-    // Fields: uid, firstName, lastName, displayName, email, phoneNumber, photoURL, role, createdAt
-    //
-    // Collection: services
-    // Fields: id, name, description, price, duration, image
-    //
-    // Collection: bookings
-    // Fields: id, userId, userName, userEmail, serviceId, serviceName, category, date, time, status, createdAt
-    //
-    // Collection: gallery
-    // Fields: id, title, imageUrl, category
-    //
-    // Collection: contacts
-    // Fields: name, email, subject, message, createdAt
-    // ===============================================================
-
-    // ===============================================================
     // Helper Functions
     // ===============================================================
     function isAuthenticated() {
@@ -32,14 +13,16 @@ service cloud.firestore {
     }
 
     function isAdmin() {
-      return isAuthenticated() && 
-        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
-         exists(/databases/$(database)/documents/authorized_admins/$(request.auth.token.email)) ||
-         (request.auth.token.email == "osiamijnr@gmail.com"));
-    }
-
-    function hasOnlyAllowedFields(fields) {
-      return request.resource.data.keys().hasOnly(fields);
+      return isAuthenticated() && (
+        // 1. Check role in users collection
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin') ||
+        // 2. Check authorized_admins collection
+        (request.auth.token.email != null && 
+         exists(/databases/$(database)/documents/authorized_admins/$(request.auth.token.email.lower()))) ||
+        // 3. Hardcoded primary admin
+        (request.auth.token.email == "osiamijnr@gmail.com")
+      );
     }
 
     function isValidEmail(email) {
@@ -47,6 +30,7 @@ service cloud.firestore {
     }
 
     function isValidPhone(phone) {
+      // More lenient phone validation
       return phone is string && phone.size() >= 10 && phone.size() <= 20;
     }
 
@@ -55,29 +39,19 @@ service cloud.firestore {
     // ===============================================================
     function isValidUser(data) {
       return data.uid is string && 
-             data.firstName is string && data.firstName.size() > 0 && data.firstName.size() < 50 &&
-             data.lastName is string && data.lastName.size() > 0 && data.lastName.size() < 50 &&
              data.email is string && isValidEmail(data.email) &&
-             data.phoneNumber is string && isValidPhone(data.phoneNumber) &&
-             data.role in ['client', 'admin'];
-    }
-
-    function isValidAuthorizedAdmin(data) {
-      return data.email is string && isValidEmail(data.email) &&
-             data.addedBy is string &&
-             data.createdAt is timestamp;
+             data.displayName is string && data.displayName.size() > 0 &&
+             data.role in ['client', 'admin'] &&
+             (!('phoneNumber' in data) || isValidPhone(data.phoneNumber));
     }
 
     function isValidBooking(data) {
       return data.userId is string && 
-             (data.userId == request.auth.uid || isAdmin()) &&
              data.userName is string && data.userName.size() < 100 &&
-             data.userEmail is string && isValidEmail(data.userEmail) &&
-             data.serviceId is string &&
              data.serviceName is string && data.serviceName.size() < 100 &&
              data.category is string && data.category.size() < 50 &&
              data.date is string &&
-             data.time is string && data.time.size() < 20 &&
+             data.time is string &&
              data.status in ['pending', 'confirmed', 'cancelled', 'completed', 'rescheduled'];
     }
 
@@ -94,13 +68,14 @@ service cloud.firestore {
     match /users/{userId} {
       allow read: if isOwner(userId) || isAdmin();
       allow create: if isOwner(userId) && isValidUser(request.resource.data) && request.resource.data.role == 'client';
-      allow update: if (isOwner(userId) && isValidUser(request.resource.data) && request.resource.data.role == resource.data.role) ||
-                    (isAdmin() && isValidUser(request.resource.data));
+      allow update: if (isOwner(userId) && isValidUser(request.resource.data) && request.resource.data.role == resource.data.role) || isAdmin();
       allow delete: if isAdmin();
     }
 
     match /authorized_admins/{email} {
-      allow read, write: if isAdmin();
+      // Allow any authenticated user to check if they are an admin (needed for initial load)
+      allow read: if isAuthenticated() && (request.auth.token.email.lower() == email.lower() || isAdmin());
+      allow write: if isAdmin();
     }
 
     match /services/{serviceId} {
@@ -111,7 +86,10 @@ service cloud.firestore {
     match /bookings/{bookingId} {
       allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
       allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid && isValidBooking(request.resource.data);
-      allow update: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin()) && isValidBooking(request.resource.data);
+      allow update: if isAuthenticated() && (
+        (resource.data.userId == request.auth.uid && isValidBooking(request.resource.data) && request.resource.data.userId == resource.data.userId) || 
+        isAdmin()
+      );
       allow delete: if isAdmin();
     }
 
@@ -124,6 +102,11 @@ service cloud.firestore {
       allow read: if isAdmin();
       allow create: if isValidContact(request.resource.data);
       allow update, delete: if isAdmin();
+    }
+    
+    match /admin_settings/{settingId} {
+      allow read: if true;
+      allow write: if isAdmin();
     }
   }
 }

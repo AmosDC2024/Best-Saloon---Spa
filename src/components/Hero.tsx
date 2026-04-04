@@ -77,20 +77,20 @@ export default function Hero({ onOpenBooking, onOpenContact }: HeroProps) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
         >
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-amber-500/10 border border-amber-500/20 rounded-full mb-8">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-amber-500/10 border border-amber-500/20 rounded-full mb-4">
             <Scissors className="w-4 h-4 text-amber-500" />
             <span className="text-[10px] md:text-xs font-black text-amber-500 uppercase tracking-[0.3em]">
               Premium Grooming Experience
             </span>
           </div>
           
-          <h1 className="text-5xl md:text-7xl lg:text-9xl font-black text-white uppercase tracking-tighter leading-[0.85] mb-8 text-balance">
+          <h1 className="text-5xl md:text-7xl lg:text-9xl font-black text-white uppercase tracking-tighter leading-[0.85] mb-1 text-balance">
             Sharp Cuts.<br />
             <span className="text-amber-500">Clean Confidence.</span>
           </h1>
           
           <p className="max-w-2xl mx-auto text-base md:text-xl text-white/60 mb-12 leading-relaxed text-balance">
-            Experience the art of grooming and relaxation at Best Salon & SPA. We combine traditional techniques with modern styles to give you the perfect look and feel.
+            Experience the art of grooming and relaxation at <span className="font-arcade text-amber-500 uppercase">best salon services & creative hub</span>. We combine traditional techniques with modern styles to give you the perfect look and feel.
           </p>
           
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 md:gap-6">

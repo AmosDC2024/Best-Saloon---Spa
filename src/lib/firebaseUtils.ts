@@ -29,32 +29,32 @@ export interface FirestoreErrorInfo {
 }
 
 export function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
+  const errorMessage = error instanceof Error ? error.message : (error ? String(error) : 'Unknown Firestore Error');
+  
   const errInfo: FirestoreErrorInfo = {
-    error: error instanceof Error ? error.message : String(error),
+    error: errorMessage,
     authInfo: {
-      userId: auth.currentUser?.uid,
-      email: auth.currentUser?.email,
-      emailVerified: auth.currentUser?.emailVerified,
-      isAnonymous: auth.currentUser?.isAnonymous,
-      tenantId: auth.currentUser?.tenantId,
+      userId: auth.currentUser?.uid || 'Not Authenticated',
+      email: auth.currentUser?.email || 'No Email',
+      emailVerified: auth.currentUser?.emailVerified || false,
+      isAnonymous: auth.currentUser?.isAnonymous || false,
+      tenantId: auth.currentUser?.tenantId || 'No Tenant',
       providerInfo: auth.currentUser?.providerData.map(provider => ({
         providerId: provider.providerId,
-        displayName: provider.displayName,
-        email: provider.email,
-        photoUrl: provider.photoURL
+        displayName: provider.displayName || 'No Name',
+        email: provider.email || 'No Email',
+        photoUrl: provider.photoURL || 'No Photo'
       })) || []
     },
     operationType,
     path
   }
   
-  const errorMessage = error instanceof Error ? error.message : String(error);
-  
   if (errorMessage.includes('Missing or insufficient permissions')) {
     console.error('Firestore Permission Error: ', JSON.stringify(errInfo));
     throw new Error(JSON.stringify(errInfo));
   }
   
-  console.error('Firestore Error: ', errorMessage);
+  console.error(`[Firestore ${operationType}] Error at ${path || 'unknown'}:`, errorMessage);
   throw error;
 }

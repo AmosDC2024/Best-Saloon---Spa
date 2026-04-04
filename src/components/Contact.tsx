@@ -4,6 +4,7 @@ import { MapPin, Phone, Mail, Clock, Instagram, Twitter, Facebook, MessageSquare
 import { db } from '../firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { handleFirestoreError, OperationType } from '../lib/firebaseUtils';
+import { toast } from 'sonner';
 
 export default function Contact() {
   const [formData, setFormData] = useState({
@@ -48,15 +49,15 @@ export default function Contact() {
       setTimeout(() => setSuccess(false), 5000);
     } catch (error) {
       console.error('Error saving contact message:', error);
-      alert('Failed to send message. Please try again or use WhatsApp.');
+      toast.error('Failed to send message. Please try again or use WhatsApp.');
     } finally {
       setLoading(false);
     }
   };
 
   const handleWhatsApp = () => {
-    const message = `Hi! I'm ${formData.name}. I have a question: ${formData.message}`;
-    const url = `https://wa.me/2348068059823?text=${encodeURIComponent(message)}`;
+    const message = `Hi best salon services & creative hub! I'm ${formData.name}. I have a question: ${formData.message}`;
+    const url = `https://api.whatsapp.com/send?phone=2348068059823&text=${encodeURIComponent(message)}`;
     window.open(url, '_blank');
   };
 

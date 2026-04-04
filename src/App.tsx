@@ -16,6 +16,7 @@ import { auth } from './firebase';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from './firebase';
+import { Toaster } from 'sonner';
 
 const ADMIN_EMAIL = 'osiamijnr@gmail.com';
 
@@ -104,6 +105,7 @@ function App() {
 
   return (
     <div className="min-h-screen bg-black font-sans selection:bg-amber-500 selection:text-black">
+      <Toaster position="top-center" richColors />
       <Navbar 
         onOpenGallery={() => setIsGalleryOpen(true)} 
         onOpenBooking={() => setIsBookingOpen(true)}
@@ -190,14 +192,20 @@ function App() {
                       More Than Just A <span className="text-amber-500">Salon</span>
                     </motion.h2>
                     <p className="text-white/60 text-lg leading-relaxed mb-8">
-                      At Best Salon & SPA, we believe that grooming and relaxation are essential parts of a modern lifestyle. Our space is designed to be a sanctuary where you can relax, recharge, and leave feeling like your best self.
+                      At <span className="font-arcade text-amber-500 uppercase">best salon services & creative hub</span>, we believe that grooming and relaxation are essential parts of a modern lifestyle. Our space is designed to be a sanctuary where you can relax, recharge, and leave feeling like your best self.
                     </p>
                     <div className="space-y-6">
                       {[
                         'Master barbers and spa therapists',
                         'Premium grooming and wellness products',
                         'Complimentary drinks and luxury atmosphere',
-                        'The best salon & spa experience in the city'
+                        'The best salon services & creative hub experience in the city'.split(/(best salon services & creative hub)/gi).map((part, i) => 
+                          part.toLowerCase() === 'best salon services & creative hub' ? (
+                            <span key={i} className="font-arcade text-amber-500 uppercase">
+                              {part}
+                            </span>
+                          ) : part
+                        )
                       ].map((item, i) => (
                         <div key={i} className="flex items-center gap-4 group">
                           <div className="w-6 h-6 bg-amber-500/20 rounded-full flex items-center justify-center border border-amber-500/30 group-hover:bg-amber-500 transition-colors">

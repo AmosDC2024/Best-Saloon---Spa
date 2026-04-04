@@ -23,7 +23,7 @@ const getResend = () => {
   return resendClient;
 };
 
-const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || 'Best Salon <onboarding@resend.dev>';
+const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || 'best salon services & creative hub <onboarding@resend.dev>';
 
 async function startServer() {
   const app = express();
@@ -110,7 +110,7 @@ async function startServer() {
       await resend.emails.send({
         from: FROM_EMAIL,
         to: [email],
-        subject: `Your Testing Link - Best Salon & SPA`,
+        subject: `Your Testing Link - best salon services & creative hub`,
         html: `
           <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
             <h1 style="color: #f59e0b;">Your Testing Link</h1>
@@ -121,7 +121,7 @@ async function startServer() {
             </div>
             <p style="color: #6b7280; font-size: 14px;">URL: <a href="${testLink}" style="color: #f59e0b;">${testLink}</a></p>
             <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;" />
-            <p style="text-align: center; color: #9ca3af; font-size: 12px;">Best Salon & SPA &bull; Admin Tools</p>
+            <p style="text-align: center; color: #9ca3af; font-size: 12px;">best salon services & creative hub &bull; Admin Tools</p>
           </div>
         `,
       });
@@ -136,24 +136,34 @@ async function startServer() {
   // API Route for sending booking confirmation emails (triggered by Admin)
   app.post('/api/send-confirmation', async (req, res) => {
     const { userName, userEmail, serviceName, date, time, category } = req.body;
+    console.log('Confirmation request received for:', userEmail);
+    
     const resend = getResend();
 
     if (!resend) {
-      return res.status(503).json({ error: 'Email service not configured' });
+      console.error('Resend client not initialized');
+      return res.status(503).json({ error: 'Email service not configured. Please check RESEND_API_KEY.' });
     }
 
-    if (!userEmail || !serviceName || !date || !time) {
-      return res.status(400).json({ error: 'Missing required booking details' });
+    if (!userEmail || userEmail === 'No Email') {
+      console.error('Invalid user email:', userEmail);
+      return res.status(400).json({ error: 'Valid client email is required to send confirmation.' });
+    }
+
+    if (!serviceName || !date || !time) {
+      console.error('Missing booking details:', { serviceName, date, time });
+      return res.status(400).json({ error: 'Missing required booking details (service, date, or time).' });
     }
 
     try {
-      await resend.emails.send({
+      console.log('Sending confirmation email to:', userEmail);
+      const result = await resend.emails.send({
         from: FROM_EMAIL,
         to: [userEmail],
-        subject: `Booking Confirmed: ${serviceName} at Best Salon & SPA`,
+        subject: `Booking Confirmed: ${serviceName} at best salon services & creative hub`,
         html: `
           <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
-            <h1 style="color: #f59e0b; text-transform: uppercase; letter-spacing: -1px;">Best Salon <span style="color: #000;">& SPA</span></h1>
+            <h1 style="color: #f59e0b; text-transform: uppercase; letter-spacing: -1px;">best salon services <span style="color: #000;">& creative hub</span></h1>
             <p style="font-size: 18px;">Hello <strong>${userName || 'Valued Client'}</strong>,</p>
             <p>Your appointment has been <strong>CONFIRMED</strong>! We look forward to seeing you.</p>
             
@@ -167,15 +177,21 @@ async function startServer() {
             
             <p style="color: #6b7280; font-size: 14px;">If you need to reschedule or cancel, please contact us at least 24 hours in advance.</p>
             <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;" />
-            <p style="text-align: center; color: #9ca3af; font-size: 12px;">Best Salon & SPA &bull; Block 1, Plot 7, Ogundola layout &bull; Akure</p>
+            <p style="text-align: center; color: #9ca3af; font-size: 12px;">best salon services & creative hub &bull; Block 1, Plot 7, Ogundola layout &bull; Akure</p>
           </div>
         `,
       });
 
-      res.status(200).json({ message: 'Confirmation email sent' });
+      if (result.error) {
+        console.error('Resend API returned error:', result.error);
+        return res.status(500).json({ error: 'Resend API error', details: result.error });
+      }
+
+      console.log('Confirmation email sent successfully:', result);
+      res.status(200).json({ message: 'Confirmation email sent', result });
     } catch (err) {
-      console.error('Confirmation error:', err);
-      res.status(500).json({ error: 'Internal server error' });
+      console.error('Resend confirmation error:', err);
+      res.status(500).json({ error: 'Failed to send email via Resend', details: err instanceof Error ? err.message : String(err) });
     }
   });
 
@@ -192,7 +208,7 @@ async function startServer() {
       await resend.emails.send({
         from: FROM_EMAIL,
         to: [userEmail],
-        subject: `Rescheduling Request: ${serviceName} at Best Salon & SPA`,
+        subject: `Rescheduling Request: ${serviceName} at best salon services & creative hub`,
         html: `
           <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
             <h1 style="color: #f59e0b;">Rescheduling Request</h1>
@@ -207,7 +223,7 @@ async function startServer() {
             
             <p>Please contact us at +234 806 805 9823 or reply to this email to confirm a new time.</p>
             <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;" />
-            <p style="text-align: center; color: #9ca3af; font-size: 12px;">Best Salon & SPA &bull; Block 1, Plot 7, Ogundola layout &bull; Akure</p>
+            <p style="text-align: center; color: #9ca3af; font-size: 12px;">best salon services & creative hub &bull; Block 1, Plot 7, Ogundola layout &bull; Akure</p>
           </div>
         `,
       });
@@ -253,15 +269,15 @@ async function startServer() {
       await resend.emails.send({
         from: FROM_EMAIL,
         to: [email],
-        subject: `We received your message - Best Salon & SPA`,
+        subject: `We received your message - best salon services & creative hub`,
         html: `
           <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
             <h1 style="color: #f59e0b;">Hello ${name},</h1>
-            <p>Thank you for reaching out to Best Salon & SPA. We have received your message regarding "<strong>${subject || 'General Inquiry'}</strong>".</p>
+            <p>Thank you for reaching out to best salon services & creative hub. We have received your message regarding "<strong>${subject || 'General Inquiry'}</strong>".</p>
             <p>Our team will review your message and get back to you as soon as possible (usually within 24 hours).</p>
             <p>If this is an emergency or you'd like to book immediately, please call us at +234 806 805 9823.</p>
             <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;" />
-            <p style="text-align: center; color: #9ca3af; font-size: 12px;">Best Salon & SPA &bull; Block 1, Plot 7, Ogundola layout &bull; Akure</p>
+            <p style="text-align: center; color: #9ca3af; font-size: 12px;">best salon services & creative hub &bull; Block 1, Plot 7, Ogundola layout &bull; Akure</p>
           </div>
         `,
       });

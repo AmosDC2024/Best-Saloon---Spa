@@ -79,7 +79,13 @@ export default function Testimonials() {
                 </div>
                 
                 <p className="text-xl md:text-2xl text-white/80 italic leading-relaxed mb-8">
-                  "{testimonials[currentIndex].content}"
+                  "{testimonials[currentIndex].content.split(/(best)/gi).map((part, i) => 
+                    part.toLowerCase() === 'best' ? (
+                      <span key={i} className="font-arcade text-amber-500 uppercase not-italic">
+                        {part}
+                      </span>
+                    ) : part
+                  )}"
                 </p>
                 
                 <div className="flex items-center gap-4">

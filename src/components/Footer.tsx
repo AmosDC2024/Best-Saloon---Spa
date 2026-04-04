@@ -23,8 +23,8 @@ export default function Footer() {
                 </div>
                 <Sparkles className="w-4 h-4 text-amber-500 absolute -top-1 -right-1 animate-pulse" />
               </div>
-              <span className="text-2xl font-black tracking-tighter text-white uppercase flex items-center gap-1 leading-none">
-                <span className="font-arcade text-[22px] text-amber-500 leading-none">BEST</span> Salon & SPA
+              <span className="font-arcade text-sm md:text-lg lg:text-xl text-amber-500 leading-none uppercase tracking-tighter">
+                best salon services & creative hub
               </span>
             </div>
             <p className="text-white/40 max-w-sm leading-relaxed mb-8">
@@ -70,7 +70,7 @@ export default function Footer() {
 
         <div className="pt-12 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
           <p className="text-white/20 text-[10px] uppercase tracking-widest font-bold">
-            © 2026 <span className="font-arcade text-[10px] text-amber-500/50">BEST</span> Salon & SPA. All Rights Reserved.
+            © 2026 <span className="font-arcade text-amber-500/50 uppercase">best salon services & creative hub</span>. All Rights Reserved.
           </p>
           <button
             onClick={scrollToTop}

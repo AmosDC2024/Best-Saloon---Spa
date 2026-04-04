@@ -4,7 +4,7 @@ import { collection, query, orderBy, onSnapshot, updateDoc, doc, where } from 'f
 import { db } from '../firebase';
 import { handleFirestoreError, OperationType } from '../lib/firebaseUtils';
 import { format } from 'date-fns';
-import { Clock, CheckCircle, Calendar, User, Scissors } from 'lucide-react';
+import { Clock, CheckCircle, Calendar, User, Scissors, Loader2 } from 'lucide-react';
 
 interface Booking {
   id: string;
@@ -22,6 +22,7 @@ export default function AdminSchedule() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
   const dateStr = format(selectedDate, 'yyyy-MM-dd');
 
   useEffect(() => {
@@ -44,10 +45,13 @@ export default function AdminSchedule() {
   }, [dateStr]);
 
   const markAsDone = async (id: string) => {
+    setActionLoading(id);
     try {
       await updateDoc(doc(db, 'bookings', id), { status: 'completed' });
     } catch (error) {
       handleFirestoreError(error, OperationType.UPDATE, `bookings/${id}`);
+    } finally {
+      setActionLoading(null);
     }
   };
 
@@ -160,9 +164,17 @@ export default function AdminSchedule() {
                 {booking.status !== 'completed' && booking.status !== 'cancelled' && (
                   <button
                     onClick={() => markAsDone(booking.id)}
-                    className="w-full md:w-auto px-8 py-4 bg-emerald-500 text-black text-xs font-black rounded-2xl uppercase tracking-widest hover:bg-emerald-400 transition-all shadow-lg shadow-emerald-500/20 active:scale-95"
+                    disabled={actionLoading === booking.id}
+                    className="w-full md:w-auto px-8 py-4 bg-emerald-500 text-black text-xs font-black rounded-2xl uppercase tracking-widest hover:bg-emerald-400 transition-all shadow-lg shadow-emerald-500/20 active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
                   >
-                    Mark Done
+                    {actionLoading === booking.id ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      'Mark Done'
+                    )}
                   </button>
                 )}
               </div>
