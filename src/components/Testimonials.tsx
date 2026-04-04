@@ -26,6 +26,22 @@ const testimonials = [
     content: "Clean, sharp, and consistent every single time. They handle my hair texture perfectly. The booking system is also very smooth, no long wait times. Highly recommended!",
     rating: 5,
     avatar: "https://images.unsplash.com/photo-1506277886164-e25aa3f4ef7f?auto=format&fit=crop&q=80&w=200"
+  },
+  {
+    id: 4,
+    name: "Emeka Nwosu",
+    role: "Tech Professional",
+    content: "The best salon services & creative hub in town. I love the atmosphere and the quality of the service. My hair has never looked better.",
+    rating: 5,
+    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200"
+  },
+  {
+    id: 5,
+    name: "Sarah Adeyemi",
+    role: "Fashion Designer",
+    content: "I visited for a full spa day and it was incredible. The attention to detail and the relaxing environment made it a perfect experience. Truly the best in Akure.",
+    rating: 5,
+    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=200"
   }
 ];
 
