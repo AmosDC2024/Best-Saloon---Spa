@@ -7,8 +7,8 @@ import { fileURLToPath } from 'url';
 
 dotenv.config();
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const currentFilename = typeof __filename !== 'undefined' ? __filename : fileURLToPath(import.meta.url);
+const currentDirname = typeof __dirname !== 'undefined' ? __dirname : path.dirname(currentFilename);
 
 let resendClient: Resend | null = null;
 const getResend = () => {
@@ -36,7 +36,7 @@ async function startServer() {
     res.json({ status: 'ok', time: new Date().toISOString() });
   });
 
-  const distPath = path.resolve(__dirname, 'dist');
+  const distPath = path.resolve(currentDirname, 'dist');
   const indexExists = fs.existsSync(path.join(distPath, 'index.html'));
   
   // 2. Serve static files with high priority in production
