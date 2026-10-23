@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { collection, query, orderBy, onSnapshot, updateDoc, doc, deleteDoc } from 'firebase/firestore';
@@ -212,7 +214,7 @@ export default function AdminDashboard() {
             <h1 className="text-4xl md:text-6xl lg:text-8xl font-black uppercase tracking-tighter leading-none">
               Admin <span className="text-amber-500">Control</span>
             </h1>
-            <p className="text-white/40 text-[10px] md:text-xs uppercase tracking-[0.3em] mt-4 font-bold">Manage your salon operations</p>
+            <p className="text-white/40 text-[10px] md:text-xs uppercase tracking-[0.3em] mt-4 font-bold">Manage Best Creative Hub operations</p>
           </div>
 
           <div className="flex flex-col sm:flex-row items-center gap-4">

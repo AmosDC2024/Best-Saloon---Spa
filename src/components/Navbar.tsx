@@ -1,491 +1,572 @@
-import React, { useState, useEffect } from 'react';
+'use client';
+
+import React, { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'motion/react';
-import { Scissors, Menu, X, User, LogOut, Calendar, MessageCircle, Sparkles, LogIn, Bell } from 'lucide-react';
-import { auth, db } from '../firebase';
-import { signOut, onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
-import { doc, getDoc, collection, query, where, onSnapshot } from 'firebase/firestore';
+import {
+  Scissors,
+  Menu,
+  X,
+  User,
+  LogOut,
+  Calendar,
+  MessageCircle,
+  Sparkles,
+  LogIn,
+  Bell,
+  ChevronDown,
+  Palette,
+  Layers,
+  ArrowRight,
+  ShieldCheck,
+} from 'lucide-react';
+import { useHub } from '../context/HubContext';
+import { signOut } from 'firebase/auth';
+import { auth } from '../firebase';
 import { cn } from '../lib/utils';
-import AuthModal from './AuthModal';
+
+const businesses = [
+  {
+    name: 'Best Salon',
+    description: 'Luxury grooming, haircuts, beard sculpting & spa wellness',
+    href: '/salon',
+    icon: Scissors,
+    accent: 'from-amber-500/20 to-amber-500/5 text-amber-400',
+  },
+  {
+    name: 'Best Signs & Craft',
+    description: '3D illuminated letters, LED lightboxes, pylon signs & craft branding',
+    href: '/signage',
+    icon: Layers,
+    accent: 'from-sky-500/20 to-sky-500/5 text-sky-400',
+  },
+  {
+    name: 'Best Art',
+    description: 'Bespoke portraits, modern fine art canvases & wall murals',
+    href: '/art',
+    icon: Palette,
+    accent: 'from-emerald-500/20 to-emerald-500/5 text-emerald-400',
+  },
+];
 
 interface NavbarProps {
-  onOpenGallery: () => void;
-  onOpenBooking: () => void;
-  onOpenContact: () => void;
-  onOpenHistory: () => void;
-  onToggleAdmin: () => void;
-  isAdminView: boolean;
-  isAdmin: boolean;
-  user: FirebaseUser | null;
-  onOpenAuth: (mode: 'login' | 'register', adminOnly?: boolean) => void;
+  onOpenGallery?: () => void;
+  onOpenBooking?: () => void;
+  onOpenContact?: () => void;
+  onOpenHistory?: () => void;
+  onToggleAdmin?: () => void;
+  isAdminView?: boolean;
+  isAdmin?: boolean;
+  user?: any;
+  onOpenAuth?: (mode: 'login' | 'register', adminOnly?: boolean) => void;
 }
 
-interface NavLink {
-  name: string;
-  href?: string;
-  action?: () => void;
-  hideOnAdmin?: boolean;
-  alwaysShow?: boolean;
-  showIfAdmin?: boolean;
-  hideOnDesktop?: boolean;
-}
+export default function Navbar(props: NavbarProps = {}) {
+  const pathname = usePathname();
+  const hub = useHub();
 
-const ADMIN_EMAIL = 'osiamijnr@gmail.com';
-const NOTIFICATION_SOUND = 'https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3';
+  const user = props.user !== undefined ? props.user : hub.user;
+  const isAdmin = props.isAdmin !== undefined ? props.isAdmin : hub.isAdmin;
+  const isAdminView = props.isAdminView !== undefined ? props.isAdminView : hub.isAdminView;
+  const unreadCount = hub.unreadCount;
+  const totalPending = hub.totalPending;
 
-export default function Navbar({ onOpenGallery, onOpenBooking, onOpenContact, onOpenHistory, onToggleAdmin, isAdminView, isAdmin, user, onOpenAuth }: NavbarProps) {
-  const [isOpen, setIsOpen] = useState(false);
+  const openBooking = props.onOpenBooking || hub.openBooking;
+  const openAuth = props.onOpenAuth || hub.openAuth;
+  const openHistory = props.onOpenHistory || hub.openHistory;
+  const toggleAdminView = props.onToggleAdmin || hub.toggleAdminView;
+
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isBusinessesOpen, setIsBusinessesOpen] = useState(false);
+  const [isMobileBusinessesOpen, setIsMobileBusinessesOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [totalPending, setTotalPending] = useState(0);
-  const [lastSeenCount, setLastSeenCount] = useState(() => {
-    return parseInt(localStorage.getItem('admin_last_seen_count') || '0');
-  });
-  const [showToast, setShowToast] = useState(false);
-  const [toastMessage, setToastMessage] = useState('');
-  const audioRef = React.useRef<HTMLAudioElement | null>(null);
-  
-  // Use refs for initial load flags to ensure they persist across effect re-runs
-  const initialBookingsReceived = React.useRef(false);
-  const initialMessagesReceived = React.useRef(false);
-  const initialUserReceived = React.useRef(false);
 
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const userMenuRef = useRef<HTMLDivElement>(null);
+
+  // Close menus on route change
   useEffect(() => {
-    audioRef.current = new Audio(NOTIFICATION_SOUND);
-  }, []);
+    setIsMobileMenuOpen(false);
+    setIsBusinessesOpen(false);
+    setIsUserMenuOpen(false);
+  }, [pathname]);
 
-  useEffect(() => {
-    if (!user) {
-      setUnreadCount(0);
-      initialBookingsReceived.current = false;
-      initialMessagesReceived.current = false;
-      initialUserReceived.current = false;
-      return;
-    }
-
-    const unsubscribes: (() => void)[] = [];
-    let isInitialBookings = true;
-    let isInitialMessages = true;
-    let isInitialUser = true;
-
-    if (isAdmin) {
-      // Admin listens for new bookings and messages
-      const bookingsQuery = query(collection(db, 'bookings'), where('status', '==', 'pending'));
-      const messagesQuery = query(collection(db, 'contacts'), where('status', '==', 'new'));
-
-      const unsubBookings = onSnapshot(bookingsQuery, (snapshot) => {
-        const count = snapshot.size;
-        
-        if (isInitialBookings || !initialBookingsReceived.current) {
-          setTotalPending(prev => prev + count);
-          isInitialBookings = false;
-          initialBookingsReceived.current = true;
-          return;
-        }
-
-        const added = snapshot.docChanges().filter(change => change.type === 'added');
-        if (added.length > 0) {
-          // Play sound on all devices where the admin is logged in
-          audioRef.current?.play().catch(e => console.log('Audio play failed:', e));
-          setTotalPending(prev => prev + added.length);
-          setToastMessage('New booking request received!');
-          setShowToast(true);
-          setTimeout(() => setShowToast(false), 5000);
-        }
-        
-        // If items were removed (confirmed/cancelled), update totalPending
-        const removed = snapshot.docChanges().filter(change => change.type === 'removed');
-        if (removed.length > 0) {
-          setTotalPending(prev => Math.max(0, prev - removed.length));
-        }
-      });
-
-      const unsubMessages = onSnapshot(messagesQuery, (snapshot) => {
-        const count = snapshot.size;
-
-        if (isInitialMessages || !initialMessagesReceived.current) {
-          setTotalPending(prev => prev + count);
-          isInitialMessages = false;
-          initialMessagesReceived.current = true;
-          return;
-        }
-
-        const added = snapshot.docChanges().filter(change => change.type === 'added');
-        if (added.length > 0) {
-          // Play sound on all devices where the admin is logged in
-          audioRef.current?.play().catch(e => console.log('Audio play failed:', e));
-          setTotalPending(prev => prev + added.length);
-          setToastMessage('New contact message received!');
-          setShowToast(true);
-          setTimeout(() => setShowToast(false), 5000);
-        }
-
-        // If items were removed (marked read), update totalPending
-        const removed = snapshot.docChanges().filter(change => change.type === 'removed');
-        if (removed.length > 0) {
-          setTotalPending(prev => Math.max(0, prev - removed.length));
-        }
-      });
-
-      unsubscribes.push(unsubBookings, unsubMessages);
-    } else {
-      // User listens for status changes in their bookings
-      const userBookingsQuery = query(collection(db, 'bookings'), where('userId', '==', user.uid));
-      
-      const unsubUser = onSnapshot(userBookingsQuery, (snapshot) => {
-        if (isInitialUser || !initialUserReceived.current) {
-          isInitialUser = false;
-          initialUserReceived.current = true;
-          return;
-        }
-
-        const modified = snapshot.docChanges().filter(change => 
-          change.type === 'modified' && 
-          ['confirmed', 'rescheduled'].includes(change.doc.data().status)
-        );
-        
-        if (modified.length > 0) {
-          audioRef.current?.play().catch(e => console.log('Audio play failed:', e));
-          setUnreadCount(prev => prev + modified.length);
-          setToastMessage('Appointment status updated! Check your email.');
-          setShowToast(true);
-          setTimeout(() => setShowToast(false), 5000);
-        }
-      });
-      unsubscribes.push(unsubUser);
-    }
-
-    return () => unsubscribes.forEach(unsub => unsub());
-  }, [user, isAdmin]);
-
-  useEffect(() => {
-    if (isAdmin) {
-      const count = Math.max(0, totalPending - lastSeenCount);
-      setUnreadCount(count);
-    }
-  }, [totalPending, lastSeenCount, isAdmin]);
-
+  // Track scroll position
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 50);
+      setScrolled(window.scrollY > 30);
     };
-
     window.addEventListener('scroll', handleScroll);
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const handleLoginClick = () => {
-    onOpenAuth('login', false);
-  };
+  // Close dropdowns on outside click
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsBusinessesOpen(false);
+      }
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setIsUserMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const handleLogout = async () => {
     try {
       await signOut(auth);
+      setIsUserMenuOpen(false);
     } catch (error) {
       console.error('Logout error:', error);
     }
   };
 
-  const navLinks: NavLink[] = [
-    { name: 'Home', href: '#home', hideOnAdmin: true },
-    { name: 'Services', href: '#services', hideOnAdmin: true },
-    { name: 'Gallery', action: onOpenGallery, hideOnAdmin: true },
-    { name: 'About', href: '#about', hideOnAdmin: true },
-    { name: 'Contact', action: onOpenContact, hideOnAdmin: true },
-    {
-      name: 'My Appointments', 
-      action: () => {
-        if (!user) {
-          onOpenAuth('login', false);
-          return;
-        }
-        onOpenHistory();
-      },
-      hideOnAdmin: true
-    },
-    {
-      name: isAdminView ? 'Back to Site' : 'Admin Panel',
-      action: () => {
-        if (!isAdmin) {
-          onOpenAuth('login', true);
-          return;
-        }
-        onToggleAdmin();
-      },
-      alwaysShow: true
-    },
-    { name: 'WhatsApp', action: () => window.open('https://api.whatsapp.com/send?phone=2348068059823&text=Hi%20Best%20Salon%20%26%20SPA!%20I%27d%20like%20to%20make%20an%20inquiry.', '_blank'), hideOnAdmin: true, hideOnDesktop: true },
+  const navLinks = [
+    { name: 'Home', href: '/' },
+    { name: 'About', href: '/about' },
+    { name: 'Portfolio', href: '/portfolio' },
+    { name: 'Training', href: '/training' },
+    { name: 'Contact', href: '/contact' },
   ];
-
-  const filteredLinks = navLinks.filter(link => {
-    if (isAdminView) {
-      return !!link.alwaysShow || !!link.showIfAdmin;
-    }
-    if (link.alwaysShow) return true;
-    if (link.showIfAdmin) return isAdmin;
-    return true;
-  });
-
-  const desktopLinks = filteredLinks.filter(link => !link.hideOnDesktop);
 
   return (
     <nav
       className={cn(
-        'fixed top-0 left-0 right-0 z-50 transition-all duration-300 px-6 py-4',
-        scrolled ? 'bg-black/80 backdrop-blur-md border-b border-white/10' : 'bg-transparent'
+        'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
+        scrolled
+          ? 'bg-[#0A192F]/95 backdrop-blur-md border-b border-white/10 shadow-2xl py-3'
+          : 'bg-gradient-to-b from-[#0A192F] via-[#0A192F]/80 to-transparent py-4'
       )}
     >
-      <div className="max-w-7xl mx-auto flex items-center justify-between">
-        <a href="#home" className="flex items-center gap-2 group">
-          <div className="relative">
-            <div className="w-10 h-10 bg-amber-500 rounded-lg flex items-center justify-center overflow-hidden group-hover:rotate-12 transition-transform">
-              <Scissors className="w-6 h-6 text-black absolute z-0" />
-              <img 
-                src="https://ais-pre-htn43e6zff3d6tqo54gu7b-182291592896.europe-west2.run.app/api/attachments/67e26880-9941-4712-98e3-086574f884a4" 
-                alt="Logo" 
-                className="w-full h-full object-cover mix-blend-multiply relative z-10"
-                referrerPolicy="no-referrer"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).style.display = 'none';
-                }}
-              />
-            </div>
-            <Sparkles className="w-4 h-4 text-amber-500 absolute -top-1 -right-1 animate-pulse" />
-          </div>
-          <span className="font-arcade text-[10px] sm:text-xs md:text-sm lg:text-lg text-amber-500 leading-none uppercase tracking-tighter">
-            best salon services & creative hub
-          </span>
-        </a>
-
-        {/* Desktop Nav */}
-        <div className="hidden lg:flex items-center gap-8">
-          {desktopLinks.map((link) => (
-            link.action ? (
-              <button
-                key={link.name}
-                onClick={link.action}
-                className="text-sm font-medium text-white/70 hover:text-amber-500 transition-colors uppercase tracking-widest cursor-pointer"
-              >
-                {link.name}
-              </button>
-            ) : (
-              <a
-                key={link.name}
-                href={link.href}
-                className="text-sm font-medium text-white/70 hover:text-amber-500 transition-colors uppercase tracking-widest"
-              >
-                {link.name}
-              </a>
-            )
-          ))}
-          {user ? (
-            <div className="flex items-center gap-4">
-              <div className="relative group/notif">
-                <button 
-                  onClick={() => {
-                    if (isAdmin) {
-                      setLastSeenCount(totalPending);
-                      localStorage.setItem('admin_last_seen_count', totalPending.toString());
-                      if (!isAdminView) onToggleAdmin();
-                    } else {
-                      setUnreadCount(0);
-                      onOpenHistory();
-                    }
-                  }}
-                  className="p-2 text-white/70 hover:text-amber-500 transition-colors relative"
-                >
-                  <Bell className="w-5 h-5" />
-                  {unreadCount > 0 && (
-                    <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-black rounded-full flex items-center justify-center px-1 animate-in zoom-in duration-300">
-                      {unreadCount}
-                    </span>
-                  )}
-                </button>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-14">
+          {/* Logo / Brand */}
+          <Link href="/" className="flex items-center gap-3 group">
+            <div className="relative">
+              <div className="w-10 h-10 bg-amber-500 rounded-xl flex items-center justify-center font-black text-black text-lg shadow-lg group-hover:scale-105 transition-transform">
+                B
               </div>
-              {!isAdminView && (
-                <button
-                  onClick={onOpenBooking}
-                  className="px-4 py-2 bg-amber-500/10 border border-amber-500/20 text-amber-500 text-[10px] font-bold rounded-lg hover:bg-amber-500 hover:text-black transition-all uppercase tracking-widest"
-                >
-                  Book Me
-                </button>
+              <Sparkles className="w-3.5 h-3.5 text-amber-400 absolute -top-1 -right-1 animate-pulse" />
+            </div>
+            <div className="flex flex-col">
+              <span className="font-arcade text-sm sm:text-base tracking-wider text-amber-500 uppercase leading-none group-hover:text-amber-400 transition-colors">
+                BEST CREATIVE HUB
+              </span>
+              <span className="text-[9px] tracking-widest uppercase text-white/50 font-semibold mt-0.5">
+                Salon &bull; Signage &bull; Art
+              </span>
+            </div>
+          </Link>
+
+          {/* Desktop Navigation */}
+          <div className="hidden lg:flex items-center gap-1 xl:gap-2">
+            <Link
+              href="/"
+              className={cn(
+                'px-3 py-2 text-xs uppercase tracking-widest font-bold rounded-lg transition-colors',
+                pathname === '/'
+                  ? 'text-amber-500 bg-white/5'
+                  : 'text-white/70 hover:text-white hover:bg-white/5'
               )}
+            >
+              Home
+            </Link>
+
+            {/* Our Businesses Dropdown */}
+            <div className="relative" ref={dropdownRef}>
               <button
-                onClick={handleLogout}
-                className="flex items-center gap-2 text-sm font-medium text-white/70 hover:text-red-400 transition-colors uppercase tracking-widest"
+                type="button"
+                onClick={() => setIsBusinessesOpen(!isBusinessesOpen)}
+                onMouseEnter={() => setIsBusinessesOpen(true)}
+                className={cn(
+                  'flex items-center gap-1.5 px-3 py-2 text-xs uppercase tracking-widest font-bold rounded-lg transition-colors cursor-pointer',
+                  ['/salon', '/signage', '/art'].includes(pathname)
+                    ? 'text-amber-500 bg-white/5'
+                    : 'text-white/70 hover:text-white hover:bg-white/5'
+                )}
               >
-                <LogOut className="w-4 h-4" />
-                Logout
-              </button>
-              <div className="relative group/user">
-                <img
-                  src={user.photoURL || `https://ui-avatars.com/api/?name=${user.displayName || 'User'}&background=f59e0b&color=000`}
-                  alt={user.displayName || ''}
-                  className="w-8 h-8 rounded-full border border-amber-500"
+                <span>Our Businesses</span>
+                <ChevronDown
+                  className={cn(
+                    'w-3.5 h-3.5 transition-transform duration-200',
+                    isBusinessesOpen ? 'rotate-180 text-amber-500' : 'text-white/50'
+                  )}
                 />
-              </div>
-            </div>
-          ) : (
-            <div className="flex items-center gap-4">
-              <button
-                onClick={handleLoginClick}
-                className="text-sm font-medium text-white/70 hover:text-amber-500 transition-colors uppercase tracking-widest"
-              >
-                Login
               </button>
-              <button
-                onClick={() => onOpenAuth('register', false)}
-                className="px-6 py-2 bg-amber-500 text-black text-sm font-bold rounded-full hover:bg-amber-400 transition-colors uppercase tracking-widest"
-              >
-                Register
-              </button>
+
+              <AnimatePresence>
+                {isBusinessesOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 10, scale: 0.98 }}
+                    transition={{ duration: 0.15 }}
+                    onMouseLeave={() => setIsBusinessesOpen(false)}
+                    className="absolute top-full left-0 mt-2 w-80 bg-[#0A192F] border border-white/10 rounded-2xl p-2 shadow-2xl backdrop-blur-xl z-50"
+                  >
+                    <div className="px-3 py-2 border-b border-white/5 mb-1">
+                      <p className="text-[10px] uppercase tracking-widest text-white/40 font-bold">
+                        Specialized Hub Subsidiaries
+                      </p>
+                    </div>
+                    {businesses.map((biz) => {
+                      const Icon = biz.icon;
+                      const isActive = pathname === biz.href;
+                      return (
+                        <Link
+                          key={biz.href}
+                          href={biz.href}
+                          onClick={() => setIsBusinessesOpen(false)}
+                          className={cn(
+                            'flex items-start gap-3 p-3 rounded-xl transition-all group/item',
+                            isActive
+                              ? 'bg-amber-500/10 border border-amber-500/30'
+                              : 'hover:bg-white/5 border border-transparent'
+                          )}
+                        >
+                          <div
+                            className={cn(
+                              'w-9 h-9 rounded-lg flex items-center justify-center shrink-0 bg-gradient-to-br transition-all group-hover/item:scale-105',
+                              biz.accent
+                            )}
+                          >
+                            <Icon className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-1.5">
+                              <span
+                                className={cn(
+                                  'text-xs font-bold uppercase tracking-wider',
+                                  isActive ? 'text-amber-500' : 'text-white group-hover/item:text-amber-400'
+                                )}
+                              >
+                                {biz.name}
+                              </span>
+                              <ArrowRight className="w-3 h-3 text-white/30 group-hover/item:text-amber-500 group-hover/item:translate-x-0.5 transition-all" />
+                            </div>
+                            <p className="text-[11px] text-white/50 leading-snug mt-0.5">
+                              {biz.description}
+                            </p>
+                          </div>
+                        </Link>
+                      );
+                    })}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
-          )}
-        </div>
 
-        {/* Mobile Menu Toggle */}
-        <button
-          className="lg:hidden p-2 text-white"
-          onClick={() => setIsOpen(!isOpen)}
-        >
-          {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-        </button>
-      </div>
-
-      {/* Mobile Nav */}
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="absolute top-full left-0 right-0 bg-black/95 backdrop-blur-xl border-b border-white/10 p-4 lg:hidden flex flex-col gap-4 shadow-2xl"
-          >
-            {filteredLinks.map((link) => (
-              link.action ? (
-                <button
-                  key={link.name}
-                  onClick={() => {
-                    link.action?.();
-                    setIsOpen(false);
-                  }}
-                  className="text-left text-sm font-bold text-white/70 hover:text-amber-500 transition-colors uppercase tracking-widest"
-                >
-                  {link.name}
-                </button>
-              ) : (
-                <a
-                  key={link.name}
-                  href={link.href}
-                  onClick={() => setIsOpen(false)}
-                  className="text-sm font-bold text-white/70 hover:text-amber-500 transition-colors uppercase tracking-widest"
-                >
-                  {link.name}
-                </a>
-              )
+            {navLinks.slice(1).map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={cn(
+                  'px-3 py-2 text-xs uppercase tracking-widest font-bold rounded-lg transition-colors',
+                  pathname === link.href
+                    ? 'text-amber-500 bg-white/5'
+                    : 'text-white/70 hover:text-white hover:bg-white/5'
+                )}
+              >
+                {link.name}
+              </Link>
             ))}
-            
-            <div className="pt-4 border-t border-white/10">
-              {user ? (
-                <div className="flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <img
-                      src={user.photoURL || `https://ui-avatars.com/api/?name=${user.displayName || 'User'}&background=f59e0b&color=000`}
-                      alt={user.displayName || ''}
-                      className="w-8 h-8 rounded-full border border-amber-500"
-                    />
-                    <div className="flex flex-col">
-                      <span className="text-xs font-bold text-white truncate max-w-[120px]">{user.displayName}</span>
-                    </div>
-                  </div>
-                  
-                  <div className="flex gap-2">
-                    <div className="relative">
-                      <button 
-                        onClick={() => {
-                          if (isAdmin) {
-                            setLastSeenCount(totalPending);
-                            localStorage.setItem('admin_last_seen_count', totalPending.toString());
-                            if (!isAdminView) onToggleAdmin();
-                          } else {
-                            setUnreadCount(0);
-                            onOpenHistory();
-                          }
-                          setIsOpen(false);
-                        }}
-                        className="p-2 text-white/70 hover:text-amber-500 transition-colors relative"
-                      >
-                        <Bell className="w-5 h-5" />
-                        {unreadCount > 0 && (
-                          <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-black rounded-full flex items-center justify-center px-1">
-                            {unreadCount}
-                          </span>
-                        )}
-                      </button>
-                    </div>
-                    {!isAdminView && (
+          </div>
+
+          {/* Desktop Right Actions */}
+          <div className="hidden lg:flex items-center gap-3">
+            {/* Admin Switch */}
+            {isAdmin && (
+              <button
+                onClick={toggleAdminView}
+                className={cn(
+                  'relative flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer',
+                  isAdminView
+                    ? 'bg-amber-500 text-black shadow-lg shadow-amber-500/30'
+                    : 'bg-white/5 hover:bg-white/10 text-amber-500 border border-amber-500/30'
+                )}
+              >
+                <ShieldCheck className="w-4 h-4" />
+                <span>{isAdminView ? 'Exit Admin' : 'Admin'}</span>
+                {unreadCount > 0 && !isAdminView && (
+                  <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                )}
+              </button>
+            )}
+
+            {/* Book Salon CTA */}
+            <button
+              onClick={openBooking}
+              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-black text-xs uppercase tracking-widest rounded-xl shadow-lg shadow-amber-500/20 hover:shadow-amber-500/40 transition-all cursor-pointer"
+            >
+              <Calendar className="w-3.5 h-3.5" />
+              <span>Book Salon</span>
+            </button>
+
+            {/* Auth / Profile */}
+            {user ? (
+              <div className="relative" ref={userMenuRef}>
+                <button
+                  type="button"
+                  onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                  className="flex items-center gap-2 p-1 pl-2 pr-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all cursor-pointer"
+                >
+                  <img
+                    src={
+                      user.photoURL ||
+                      `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                        user.displayName || 'User'
+                      )}&background=f59e0b&color=000`
+                    }
+                    alt="User Avatar"
+                    className="w-7 h-7 rounded-lg object-cover"
+                    referrerPolicy="no-referrer"
+                  />
+                  <span className="text-xs font-bold text-white max-w-[90px] truncate">
+                    {user.displayName?.split(' ')[0] || 'Account'}
+                  </span>
+                  <ChevronDown className="w-3 h-3 text-white/50" />
+                </button>
+
+                <AnimatePresence>
+                  {isUserMenuOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 8, scale: 0.98 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 8, scale: 0.98 }}
+                      className="absolute right-0 mt-2 w-56 bg-[#0A192F] border border-white/10 rounded-2xl p-2 shadow-2xl backdrop-blur-xl z-50"
+                    >
+                      <div className="px-3 py-2 border-b border-white/5 mb-1">
+                        <p className="text-xs font-bold text-white truncate">
+                          {user.displayName || 'Valued Client'}
+                        </p>
+                        <p className="text-[10px] text-white/40 truncate">{user.email}</p>
+                      </div>
+
                       <button
                         onClick={() => {
-                          onOpenBooking();
-                          setIsOpen(false);
+                          setIsUserMenuOpen(false);
+                          openHistory();
                         }}
-                        className="px-3 py-2 bg-amber-500 text-black text-[10px] font-black rounded-lg hover:bg-amber-400 transition-colors uppercase tracking-widest flex items-center gap-1"
+                        className="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold text-white/80 hover:text-white hover:bg-white/5 rounded-lg transition-colors cursor-pointer"
                       >
-                        <Calendar className="w-3 h-3" />
-                        Book
+                        <Calendar className="w-3.5 h-3.5 text-amber-500" />
+                        <span>My Appointments</span>
                       </button>
-                    )}
-                    <button
-                      onClick={() => {
-                        handleLogout();
-                        setIsOpen(false);
-                      }}
-                      className="px-3 py-2 bg-red-500/10 text-red-400 text-[10px] font-bold rounded-lg hover:bg-red-500 hover:text-white transition-all uppercase tracking-widest flex items-center gap-1"
-                    >
-                      <LogOut className="w-3 h-3" />
-                      Out
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    onClick={() => {
-                      handleLoginClick();
-                      setIsOpen(false);
-                    }}
-                    className="py-3 bg-white/5 text-white text-xs font-black rounded-xl hover:bg-white/10 transition-colors uppercase tracking-widest border border-white/10"
-                  >
-                    Login
-                  </button>
-                  <button
-                    onClick={() => {
-                      onOpenAuth('register', false);
-                      setIsOpen(false);
-                    }}
-                    className="py-3 bg-amber-500 text-black text-xs font-black rounded-xl hover:bg-amber-400 transition-colors uppercase tracking-widest shadow-lg shadow-amber-500/20"
-                  >
-                    Register
-                  </button>
-                </div>
-              )}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
-      {/* Toast Notification */}
+                      <a
+                        href="https://api.whatsapp.com/send?phone=2348068059823&text=Hi%20Best%20Creative%20Hub!%20I'd%20like%20to%20make%20an%20inquiry."
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold text-emerald-400 hover:bg-emerald-500/10 rounded-lg transition-colors cursor-pointer"
+                      >
+                        <MessageCircle className="w-3.5 h-3.5" />
+                        <span>WhatsApp Hub</span>
+                      </a>
+
+                      <div className="my-1 border-t border-white/5" />
+
+                      <button
+                        onClick={handleLogout}
+                        className="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold text-red-400 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer"
+                      >
+                        <LogOut className="w-3.5 h-3.5" />
+                        <span>Sign Out</span>
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            ) : (
+              <button
+                onClick={() => openAuth('login', false)}
+                className="flex items-center gap-1.5 px-3 py-2 text-xs uppercase tracking-widest font-bold text-white/80 hover:text-white hover:bg-white/5 rounded-xl border border-white/10 transition-colors cursor-pointer"
+              >
+                <LogIn className="w-3.5 h-3.5 text-amber-500" />
+                <span>Sign In</span>
+              </button>
+            )}
+          </div>
+
+          {/* Mobile Menu Button */}
+          <div className="flex items-center gap-2 lg:hidden">
+            {isAdmin && (
+              <button
+                onClick={toggleAdminView}
+                className={cn(
+                  'p-2 rounded-xl text-xs font-bold transition-all',
+                  isAdminView ? 'bg-amber-500 text-black' : 'bg-white/10 text-amber-500'
+                )}
+              >
+                <ShieldCheck className="w-5 h-5" />
+              </button>
+            )}
+
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="p-2 text-white hover:text-amber-500 bg-white/5 border border-white/10 rounded-xl transition-colors"
+              aria-label="Toggle Menu"
+            >
+              {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile Drawer */}
       <AnimatePresence>
-        {showToast && (
+        {isMobileMenuOpen && (
           <motion.div
-            initial={{ opacity: 0, y: 50, x: '-50%' }}
-            animate={{ opacity: 1, y: 0, x: '-50%' }}
-            exit={{ opacity: 0, y: 50, x: '-50%' }}
-            className="fixed bottom-24 left-1/2 z-[60] px-6 py-3 bg-amber-500 text-black font-black rounded-2xl shadow-2xl flex items-center gap-3 uppercase tracking-widest text-[10px] border border-black/10"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="lg:hidden bg-[#0A192F] border-b border-white/10 px-6 py-6 overflow-hidden max-h-[85vh] overflow-y-auto"
           >
-            <Bell className="w-4 h-4" />
-            {toastMessage}
+            <div className="space-y-2">
+              <Link
+                href="/"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className={cn(
+                  'block px-4 py-3 rounded-xl text-sm font-bold uppercase tracking-wider',
+                  pathname === '/' ? 'bg-amber-500/10 text-amber-500' : 'text-white hover:bg-white/5'
+                )}
+              >
+                Home
+              </Link>
+
+              {/* Mobile "Our Businesses" Accordion */}
+              <div className="rounded-xl border border-white/10 overflow-hidden bg-white/[0.02]">
+                <button
+                  type="button"
+                  onClick={() => setIsMobileBusinessesOpen(!isMobileBusinessesOpen)}
+                  className="w-full flex items-center justify-between px-4 py-3 text-sm font-bold uppercase tracking-wider text-amber-400"
+                >
+                  <span className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-amber-500" />
+                    Our Businesses
+                  </span>
+                  <ChevronDown
+                    className={cn(
+                      'w-4 h-4 transition-transform',
+                      isMobileBusinessesOpen ? 'rotate-180' : ''
+                    )}
+                  />
+                </button>
+
+                <AnimatePresence>
+                  {isMobileBusinessesOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="px-2 pb-3 space-y-1 border-t border-white/5"
+                    >
+                      {businesses.map((biz) => {
+                        const Icon = biz.icon;
+                        const isActive = pathname === biz.href;
+                        return (
+                          <Link
+                            key={biz.href}
+                            href={biz.href}
+                            onClick={() => setIsMobileMenuOpen(false)}
+                            className={cn(
+                              'flex items-center gap-3 p-3 rounded-lg transition-colors',
+                              isActive
+                                ? 'bg-amber-500/15 text-amber-400'
+                                : 'text-white/80 hover:bg-white/5'
+                            )}
+                          >
+                            <div className={cn('p-2 rounded-lg bg-white/5', biz.accent)}>
+                              <Icon className="w-4 h-4" />
+                            </div>
+                            <div>
+                              <p className="text-xs font-bold uppercase tracking-wide">{biz.name}</p>
+                              <p className="text-[10px] text-white/50">{biz.description}</p>
+                            </div>
+                          </Link>
+                        );
+                      })}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {navLinks.slice(1).map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={cn(
+                    'block px-4 py-3 rounded-xl text-sm font-bold uppercase tracking-wider',
+                    pathname === link.href
+                      ? 'bg-amber-500/10 text-amber-500'
+                      : 'text-white hover:bg-white/5'
+                  )}
+                >
+                  {link.name}
+                </Link>
+              ))}
+
+              {user && (
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    openHistory();
+                  }}
+                  className="w-full text-left px-4 py-3 rounded-xl text-sm font-bold uppercase tracking-wider text-white hover:bg-white/5 flex items-center justify-between"
+                >
+                  <span>My Appointments</span>
+                  <Calendar className="w-4 h-4 text-amber-500" />
+                </button>
+              )}
+
+              <div className="pt-4 border-t border-white/10 space-y-3">
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    openBooking();
+                  }}
+                  className="w-full py-3.5 bg-amber-500 text-black font-black uppercase tracking-widest text-xs rounded-xl shadow-lg flex items-center justify-center gap-2"
+                >
+                  <Calendar className="w-4 h-4" />
+                  Book Salon Appointment
+                </button>
+
+                <a
+                  href="https://api.whatsapp.com/send?phone=2348068059823&text=Hi%20Best%20Creative%20Hub!%20I'd%20like%20to%20make%20an%20inquiry."
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full py-3 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-bold uppercase tracking-widest text-xs rounded-xl flex items-center justify-center gap-2"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  Chat on WhatsApp
+                </a>
+
+                {user ? (
+                  <button
+                    onClick={handleLogout}
+                    className="w-full py-2.5 text-red-400 hover:bg-red-500/10 rounded-xl text-xs font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-2"
+                  >
+                    <LogOut className="w-3.5 h-3.5" />
+                    Sign Out ({user.displayName?.split(' ')[0] || user.email})
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      openAuth('login', false);
+                    }}
+                    className="w-full py-3 bg-white/10 hover:bg-white/15 text-white font-bold uppercase tracking-widest text-xs rounded-xl flex items-center justify-center gap-2"
+                  >
+                    <LogIn className="w-4 h-4 text-amber-500" />
+                    Sign In / Register
+                  </button>
+                )}
+              </div>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

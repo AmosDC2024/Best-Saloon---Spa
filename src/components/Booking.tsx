@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Calendar, Clock, User, CheckCircle2, Scissors, MessageSquare, LogIn, Sparkles, Loader2 } from 'lucide-react';
@@ -145,7 +147,7 @@ export default function Booking({ onOpenAuth }: BookingProps) {
   };
 
   const handleWhatsApp = () => {
-    const message = `Hi best salon services & creative hub! I'd like to book a ${selectedService.name} (${selectedCategory.name}) on ${format(selectedDate, 'PPP')} at ${selectedTime}. My name is ${userData?.displayName || user?.displayName || 'a client'}.`;
+    const message = `Hi Best Salon at Best Creative Hub! I'd like to book a ${selectedService.name} (${selectedCategory.name}) on ${format(selectedDate, 'PPP')} at ${selectedTime}. My name is ${userData?.displayName || user?.displayName || 'a client'}.`;
     const url = `https://api.whatsapp.com/send?phone=2348068059823&text=${encodeURIComponent(message)}`;
     window.open(url, '_blank');
   };
@@ -155,7 +157,7 @@ export default function Booking({ onOpenAuth }: BookingProps) {
   };
 
   return (
-    <div className="py-12 px-6 bg-zinc-950 relative overflow-hidden">
+    <div className="py-12 px-6 bg-[#0A192F] relative overflow-hidden">
       {/* Floating Background Elements */}
       <div className="absolute inset-0 z-0 pointer-events-none opacity-10">
         <motion.div
@@ -194,16 +196,16 @@ export default function Booking({ onOpenAuth }: BookingProps) {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-4xl md:text-6xl font-black text-white uppercase tracking-tighter mb-4"
+            className="text-3xl md:text-5xl font-black text-white uppercase tracking-tight mb-3"
           >
             Book <span className="text-amber-500">Appointment</span>
           </motion.h2>
-          <p className="text-white/60 uppercase tracking-widest text-xs">
+          <p className="text-[#F8F9FA]/60 uppercase tracking-wider text-xs font-bold">
             Secure your spot in the chair
           </p>
         </div>
 
-        <div className="bg-zinc-900 rounded-3xl border border-white/5 overflow-hidden shadow-2xl">
+        <div className="bg-[#1F2937] rounded-3xl border border-white/10 overflow-hidden shadow-2xl">
           <div className="p-8 md:p-12 min-h-[400px]">
             <AnimatePresence mode="wait">
               {success ? (
@@ -218,10 +220,10 @@ export default function Booking({ onOpenAuth }: BookingProps) {
                     <CheckCircle2 className="w-10 h-10 text-amber-500" />
                   </div>
                   <h3 className="text-2xl font-bold text-white mb-2 uppercase tracking-tight">Booking Received!</h3>
-                  <p className="text-white/60 mb-8">We'll confirm your appointment shortly via email.</p>
+                  <p className="text-[#F8F9FA]/70 mb-8">We'll confirm your appointment shortly via email.</p>
                   <button
                     onClick={() => setSuccess(false)}
-                    className="px-8 py-3 bg-amber-500 text-black font-bold rounded-xl uppercase tracking-widest"
+                    className="px-8 py-3 bg-amber-500 text-black font-bold rounded-xl uppercase tracking-wider text-xs"
                   >
                     Book Another
                   </button>
@@ -236,8 +238,8 @@ export default function Booking({ onOpenAuth }: BookingProps) {
                 >
                   {/* Category Selection */}
                   <div>
-                    <label className="flex items-center gap-2 text-white/40 text-[10px] font-bold uppercase tracking-[0.3em] mb-4">
-                      <Scissors className="w-3 h-3" /> 1. Select Category
+                    <label className="flex items-center gap-2 text-white/50 text-xs font-bold uppercase tracking-wider mb-4">
+                      <Scissors className="w-3.5 h-3.5 text-amber-400" /> 1. Select Category
                     </label>
                     <div className="flex flex-wrap gap-3 pb-2">
                       {categories.map((cat) => (
@@ -245,10 +247,10 @@ export default function Booking({ onOpenAuth }: BookingProps) {
                           key={cat.id}
                           onClick={() => setSelectedCategory(cat)}
                           className={cn(
-                            'px-6 py-3 rounded-xl border text-xs font-bold transition-all whitespace-nowrap',
+                            'px-6 py-3 rounded-xl border text-xs font-bold transition-all whitespace-nowrap cursor-pointer',
                             selectedCategory.id === cat.id
-                              ? 'bg-amber-500 border-amber-500 text-black'
-                              : 'bg-black/40 border-white/5 text-white/70 hover:border-white/20'
+                              ? 'bg-amber-500 border-amber-500 text-black shadow-lg shadow-amber-500/20'
+                              : 'bg-[#0A192F] border-white/10 text-white/70 hover:border-white/20'
                           )}
                         >
                           {cat.name}
@@ -259,8 +261,8 @@ export default function Booking({ onOpenAuth }: BookingProps) {
 
                   {/* Service Selection */}
                   <div>
-                    <label className="flex items-center gap-2 text-white/40 text-[10px] font-bold uppercase tracking-[0.3em] mb-4">
-                      <Scissors className="w-3 h-3" /> 2. Select Service
+                    <label className="flex items-center gap-2 text-white/50 text-xs font-bold uppercase tracking-wider mb-4">
+                      <Scissors className="w-3.5 h-3.5 text-amber-400" /> 2. Select Service
                     </label>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       {filteredServices.map((service) => (
@@ -268,16 +270,16 @@ export default function Booking({ onOpenAuth }: BookingProps) {
                           key={service.id}
                           onClick={() => setSelectedService(service)}
                           className={cn(
-                            'p-4 rounded-2xl border text-left transition-all flex justify-between items-center',
+                            'p-4 rounded-2xl border text-left transition-all flex justify-between items-center cursor-pointer',
                             selectedService.id === service.id
-                              ? 'bg-amber-500 border-amber-500 text-black'
-                              : 'bg-black/40 border-white/5 text-white/70 hover:border-white/20'
+                              ? 'bg-amber-500 border-amber-500 text-black shadow-lg shadow-amber-500/20'
+                              : 'bg-[#0A192F] border-white/10 text-white/70 hover:border-white/20'
                           )}
                         >
                           <span className="font-bold uppercase tracking-tight">{service.name}</span>
                           <span className={cn(
                             'text-sm font-black',
-                            selectedService.id === service.id ? 'text-black/60' : 'text-amber-500'
+                            selectedService.id === service.id ? 'text-black/70' : 'text-amber-400'
                           )}>₦{service.price}</span>
                         </button>
                       ))}
@@ -286,8 +288,8 @@ export default function Booking({ onOpenAuth }: BookingProps) {
 
                   {/* Date Selection */}
                   <div>
-                    <label className="flex items-center gap-2 text-white/40 text-[10px] font-bold uppercase tracking-[0.3em] mb-4">
-                      <Calendar className="w-3 h-3" /> 3. Select Date
+                    <label className="flex items-center gap-2 text-white/50 text-xs font-bold uppercase tracking-wider mb-4">
+                      <Calendar className="w-3.5 h-3.5 text-amber-400" /> 3. Select Date
                     </label>
                     <div className="flex flex-wrap gap-3 pb-4">
                       {next7Days.map((date) => (
@@ -295,13 +297,13 @@ export default function Booking({ onOpenAuth }: BookingProps) {
                           key={date.toISOString()}
                           onClick={() => setSelectedDate(date)}
                           className={cn(
-                            'flex-shrink-0 w-[calc(33.33%-12px)] sm:w-20 h-24 rounded-2xl border flex flex-col items-center justify-center transition-all',
+                            'flex-shrink-0 w-[calc(33.33%-12px)] sm:w-20 h-24 rounded-2xl border flex flex-col items-center justify-center transition-all cursor-pointer',
                             isSameDay(selectedDate, date)
-                              ? 'bg-amber-500 border-amber-500 text-black'
-                              : 'bg-black/40 border-white/5 text-white/70 hover:border-white/20'
+                              ? 'bg-amber-500 border-amber-500 text-black shadow-lg shadow-amber-500/20'
+                              : 'bg-[#0A192F] border-white/10 text-white/70 hover:border-white/20'
                           )}
                         >
-                          <span className="text-[10px] font-bold uppercase tracking-widest mb-1">
+                          <span className="text-[10px] font-bold uppercase tracking-wider mb-1">
                             {format(date, 'EEE')}
                           </span>
                           <span className="text-2xl font-black">{format(date, 'd')}</span>
@@ -312,8 +314,8 @@ export default function Booking({ onOpenAuth }: BookingProps) {
 
                   {/* Time Selection */}
                   <div>
-                    <label className="flex items-center gap-2 text-white/40 text-[10px] font-bold uppercase tracking-[0.3em] mb-4">
-                      <Clock className="w-3 h-3" /> 4. Select Time
+                    <label className="flex items-center gap-2 text-white/50 text-xs font-bold uppercase tracking-wider mb-4">
+                      <Clock className="w-3.5 h-3.5 text-amber-400" /> 4. Select Time
                     </label>
                     <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
                       {timeSlots.map((time) => (
@@ -321,10 +323,10 @@ export default function Booking({ onOpenAuth }: BookingProps) {
                           key={time}
                           onClick={() => setSelectedTime(time)}
                           className={cn(
-                            'py-3 rounded-xl border text-xs font-bold transition-all',
+                            'py-3 rounded-xl border text-xs font-bold transition-all cursor-pointer',
                             selectedTime === time
-                              ? 'bg-amber-500 border-amber-500 text-black'
-                              : 'bg-black/40 border-white/5 text-white/70 hover:border-white/20'
+                              ? 'bg-amber-500 border-amber-500 text-black shadow-lg shadow-amber-500/20'
+                              : 'bg-[#0A192F] border-white/10 text-white/70 hover:border-white/20'
                           )}
                         >
                           {time}

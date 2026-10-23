@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { collection, query, onSnapshot, setDoc, doc, deleteDoc, serverTimestamp, getDocs, updateDoc, orderBy } from 'firebase/firestore';

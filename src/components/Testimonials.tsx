@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Star, Quote, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -31,7 +33,7 @@ const testimonials = [
     id: 4,
     name: "Emeka Nwosu",
     role: "Tech Professional",
-    content: "The best salon services & creative hub in town. I love the atmosphere and the quality of the service. My hair has never looked better.",
+    content: "The premier creative hub and salon in town. I love the atmosphere and the quality of the service. My hair has never looked better.",
     rating: 5,
     avatar: "https://images.unsplash.com/photo-1531384441138-2736e62e0919?auto=format&fit=crop&q=80&w=200"
   },
@@ -59,19 +61,19 @@ export default function Testimonials() {
   const prev = () => setCurrentIndex((prev) => (prev - 1 + testimonials.length) % testimonials.length);
 
   return (
-    <section className="py-24 bg-zinc-950 border-t border-white/5 overflow-hidden">
+    <section className="py-24 bg-[#050D1A] border-t border-white/10 overflow-hidden">
       <div className="max-w-7xl mx-auto px-6">
         <div className="text-center mb-16">
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-4xl md:text-6xl font-black text-white uppercase tracking-tighter mb-4"
+            className="text-3xl md:text-5xl font-black text-white uppercase tracking-tight mb-3"
           >
             Client <span className="text-amber-500">Stories</span>
           </motion.h2>
-          <p className="text-white/60 uppercase tracking-widest text-xs">
-            What the gentlemen are saying
+          <p className="text-[#F8F9FA]/60 uppercase tracking-wider text-xs font-bold">
+            Real experiences from gentlemen across Akure
           </p>
         </div>
 
@@ -83,7 +85,7 @@ export default function Testimonials() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -50 }}
               transition={{ duration: 0.5 }}
-              className="bg-zinc-900 p-8 md:p-12 rounded-3xl border border-white/5 relative"
+              className="bg-[#1F2937] p-8 md:p-12 rounded-3xl border border-white/10 shadow-2xl relative"
             >
               <Quote className="absolute top-6 left-6 w-12 h-12 text-amber-500/10" />
               
@@ -94,7 +96,7 @@ export default function Testimonials() {
                   ))}
                 </div>
                 
-                <p className="text-xl md:text-2xl text-white/80 italic leading-relaxed mb-8">
+                <p className="text-lg md:text-xl text-[#F8F9FA]/85 italic leading-relaxed mb-8 max-w-2xl">
                   "{testimonials[currentIndex].content.split(/(best)/gi).map((part, i) => 
                     part.toLowerCase() === 'best' ? (
                       <span key={i} className="font-arcade text-amber-500 uppercase not-italic">
@@ -108,12 +110,12 @@ export default function Testimonials() {
                   <img
                     src={testimonials[currentIndex].avatar}
                     alt={testimonials[currentIndex].name}
-                    className="w-16 h-16 rounded-full border-2 border-amber-500"
+                    className="w-14 h-14 rounded-full border-2 border-amber-500 object-cover"
                     referrerPolicy="no-referrer"
                   />
                   <div className="text-left">
-                    <h4 className="text-white font-bold uppercase tracking-tight">{testimonials[currentIndex].name}</h4>
-                    <p className="text-amber-500 text-[10px] font-bold uppercase tracking-widest">{testimonials[currentIndex].role}</p>
+                    <h4 className="text-white font-bold uppercase tracking-tight text-sm">{testimonials[currentIndex].name}</h4>
+                    <p className="text-amber-400 text-xs font-semibold uppercase tracking-wider">{testimonials[currentIndex].role}</p>
                   </div>
                 </div>
               </div>
@@ -124,15 +126,15 @@ export default function Testimonials() {
           <div className="flex justify-center gap-4 mt-8">
             <button
               onClick={prev}
-              className="p-3 bg-zinc-900 border border-white/5 rounded-full text-white hover:text-amber-500 hover:border-amber-500/30 transition-all"
+              className="p-3 bg-[#1F2937] border border-white/10 rounded-full text-white hover:text-amber-400 hover:border-amber-500/40 transition-all cursor-pointer"
             >
-              <ChevronLeft className="w-6 h-6" />
+              <ChevronLeft className="w-5 h-5" />
             </button>
             <button
               onClick={next}
-              className="p-3 bg-zinc-900 border border-white/5 rounded-full text-white hover:text-amber-500 hover:border-amber-500/30 transition-all"
+              className="p-3 bg-[#1F2937] border border-white/10 rounded-full text-white hover:text-amber-400 hover:border-amber-500/40 transition-all cursor-pointer"
             >
-              <ChevronRight className="w-6 h-6" />
+              <ChevronRight className="w-5 h-5" />
             </button>
           </div>
         </div>

@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { motion } from 'motion/react';
 import { Camera, ExternalLink } from 'lucide-react';
@@ -43,19 +45,19 @@ const styles = [
 
 export default function Gallery() {
   return (
-    <section id="gallery" className="section-padding bg-black">
+    <section id="gallery" className="section-padding bg-[#0A192F]">
       <div className="container-max">
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 md:mb-24 gap-8">
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 md:mb-20 gap-8">
           <div>
             <motion.h2
               initial={{ opacity: 0, x: -20 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
-              className="text-4xl md:text-6xl lg:text-8xl font-black text-white uppercase tracking-tighter mb-6"
+              className="text-3xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tight mb-4"
             >
               The <span className="text-amber-500">Lookbook</span>
             </motion.h2>
-            <p className="text-white/40 uppercase tracking-[0.3em] text-[10px] md:text-xs font-bold">
+            <p className="text-[#F8F9FA]/60 uppercase tracking-wider text-xs font-bold">
               Showcasing our finest transformations
             </p>
           </div>
@@ -66,13 +68,14 @@ export default function Gallery() {
             href="https://instagram.com"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-3 px-6 py-3 bg-zinc-900 border border-white/5 rounded-full text-amber-500 font-black uppercase tracking-[0.2em] text-[10px] hover:bg-amber-500 hover:text-black transition-all group"
+            className="inline-flex items-center gap-2.5 px-6 py-3 bg-[#1F2937] border border-white/15 rounded-xl text-amber-400 font-bold uppercase tracking-wider text-xs hover:bg-amber-500 hover:text-black transition-all group"
           >
-            Follow on Instagram <ExternalLink className="w-4 h-4 group-hover:rotate-12 transition-transform" />
+            <span>Follow on Instagram</span>
+            <ExternalLink className="w-4 h-4 group-hover:rotate-12 transition-transform" />
           </motion.a>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-10">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
           {styles.map((style, index) => (
             <motion.div
               key={style.id}
@@ -80,28 +83,28 @@ export default function Gallery() {
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
               transition={{ delay: index * 0.1 }}
-              className="group relative aspect-[4/5] rounded-[2rem] overflow-hidden bg-zinc-900 border border-white/5 shadow-2xl"
+              className="group relative aspect-[4/5] rounded-3xl overflow-hidden bg-[#1F2937] border border-white/10 shadow-xl"
             >
               <img
                 src={style.image}
                 alt={style.title}
-                className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110 grayscale group-hover:grayscale-0"
+                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                 referrerPolicy="no-referrer"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent opacity-60 group-hover:opacity-90 transition-opacity duration-500" />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0A192F] via-[#0A192F]/20 to-transparent opacity-75 group-hover:opacity-90 transition-opacity duration-500" />
               
-              <div className="absolute inset-0 flex flex-col justify-end p-10 translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
-                <span className="text-[10px] font-black text-amber-500 uppercase tracking-[0.3em] mb-3 block">
+              <div className="absolute inset-0 flex flex-col justify-end p-8 translate-y-2 group-hover:translate-y-0 transition-transform duration-500">
+                <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider mb-2 block">
                   {style.category}
                 </span>
-                <h3 className="text-2xl md:text-3xl font-black text-white uppercase tracking-tighter leading-none mb-4">
+                <h3 className="text-xl md:text-2xl font-black text-white uppercase tracking-tight leading-snug mb-3">
                   {style.title}
                 </h3>
-                <div className="w-12 h-1 bg-amber-500 scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-500" />
+                <div className="w-10 h-0.5 bg-amber-500 scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-500" />
               </div>
 
-              <div className="absolute top-8 right-8 p-3 bg-white/10 backdrop-blur-xl rounded-2xl opacity-0 group-hover:opacity-100 transition-all duration-500 hover:bg-amber-500 hover:text-black">
-                <Camera className="w-5 h-5" />
+              <div className="absolute top-6 right-6 p-2.5 bg-[#0A192F]/80 backdrop-blur-md rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-amber-500 hover:text-black text-white">
+                <Camera className="w-4 h-4" />
               </div>
             </motion.div>
           ))}

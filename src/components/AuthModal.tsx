@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Mail, Lock, User, Phone, ArrowRight, AlertCircle, Scissors, Sparkles, Eye, EyeOff } from 'lucide-react';
@@ -109,7 +111,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login', admi
 
         setSuccess(
           <span className="flex items-center gap-1">
-            Account ready! Welcome to <span className="font-arcade text-amber-500 uppercase">best salon services & creative hub</span>.
+            Account ready! Welcome to <span className="font-arcade text-amber-500 uppercase">Best Creative Hub</span>.
           </span> as unknown as string
         );
         // Clear all fields

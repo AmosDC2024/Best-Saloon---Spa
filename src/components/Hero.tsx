@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { motion } from 'motion/react';
 import { Scissors, Calendar, ChevronRight, Sparkles } from 'lucide-react';
@@ -90,7 +92,7 @@ export default function Hero({ onOpenBooking, onOpenContact }: HeroProps) {
           </h1>
           
           <p className="max-w-2xl mx-auto text-base md:text-xl text-white/60 mb-12 leading-relaxed text-balance">
-            Experience the art of grooming and relaxation at <span className="font-arcade text-amber-500 uppercase">best salon services & creative hub</span>. We combine traditional techniques with modern styles to give you the perfect look and feel.
+            Experience the art of grooming and relaxation at <span className="font-arcade text-amber-500 uppercase">Best Salon</span> at Best Creative Hub. We combine traditional techniques with modern styles to give you the perfect look and feel.
           </p>
           
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 md:gap-6">

@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Calendar, Scissors, Star, ShieldCheck, Users, X } from 'lucide-react';
@@ -192,15 +194,15 @@ function App() {
                       More Than Just A <span className="text-amber-500">Salon</span>
                     </motion.h2>
                     <p className="text-white/60 text-lg leading-relaxed mb-8">
-                      At <span className="font-arcade text-amber-500 uppercase">best salon services & creative hub</span>, we believe that grooming and relaxation are essential parts of a modern lifestyle. Our space is designed to be a sanctuary where you can relax, recharge, and leave feeling like your best self.
+                      At <span className="font-arcade text-amber-500 uppercase">Best Creative Hub</span>, we believe that grooming and relaxation are essential parts of a modern lifestyle. Our space is designed to be a sanctuary where you can relax, recharge, and leave feeling like your best self.
                     </p>
                     <div className="space-y-6">
                       {[
                         'Master barbers and spa therapists',
                         'Premium grooming and wellness products',
                         'Complimentary drinks and luxury atmosphere',
-                        'The best salon services & creative hub experience in the city'.split(/(best salon services & creative hub)/gi).map((part, i) => 
-                          part.toLowerCase() === 'best salon services & creative hub' ? (
+                        'The Best Creative Hub experience in the city'.split(/(Best Creative Hub)/gi).map((part, i) => 
+                          part.toLowerCase() === 'best creative hub' ? (
                             <span key={i} className="font-arcade text-amber-500 uppercase">
                               {part}
                             </span>

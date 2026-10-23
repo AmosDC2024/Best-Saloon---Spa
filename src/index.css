@@ -16,6 +16,14 @@
   --font-display: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-arcade: "ArcadeAmerica", "Courier New", Courier, monospace, cursive, system-ui, sans-serif;
   --font-arcade-kern: "ArcadeAmerica", "Courier New", Courier, monospace;
+
+  --color-hub-navy: #0A192F;
+  --color-hub-navy-dark: #050D1A;
+  --color-hub-navy-light: #112240;
+  --color-hub-charcoal: #1F2937;
+  --color-hub-charcoal-dark: #111827;
+  --color-hub-offwhite: #F8F9FA;
+  --color-hub-amber: #F59E0B;
 }
 
 @layer base {
@@ -28,12 +36,15 @@
   }
   
   body {
-    @apply bg-black text-white selection:bg-amber-500 selection:text-black font-sans;
+    background-color: #0A192F;
+    color: #F8F9FA;
+    font-family: var(--font-sans);
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    @apply selection:bg-amber-500 selection:text-black;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply tracking-tighter font-black uppercase;
+    @apply tracking-tight font-extrabold uppercase;
     text-rendering: optimizeLegibility;
   }
 
@@ -48,10 +59,15 @@
     width: 6px;
   }
   ::-webkit-scrollbar-track {
-    @apply bg-black;
+    background-color: #0A192F;
   }
   ::-webkit-scrollbar-thumb {
-    @apply bg-zinc-800 rounded-full hover:bg-amber-500/50 transition-colors;
+    background-color: #1F2937;
+    border-radius: 9999px;
+    transition: background-color 0.2s ease;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: #F59E0B;
   }
 }
 

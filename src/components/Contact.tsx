@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { MapPin, Phone, Mail, Clock, Instagram, Twitter, Facebook, MessageSquare, Send, CheckCircle2 } from 'lucide-react';
@@ -56,7 +58,7 @@ export default function Contact() {
   };
 
   const handleWhatsApp = () => {
-    const message = `Hi best salon services & creative hub! I'm ${formData.name}. I have a question: ${formData.message}`;
+    const message = `Hi Best Creative Hub! I'm ${formData.name}. I have a question: ${formData.message}`;
     const url = `https://api.whatsapp.com/send?phone=2348068059823&text=${encodeURIComponent(message)}`;
     window.open(url, '_blank');
   };
