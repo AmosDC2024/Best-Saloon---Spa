@@ -112,10 +112,9 @@ export default function SalonPage() {
             >
               <div className="relative rounded-3xl overflow-hidden border border-white/15 bg-[#1F2937] shadow-2xl group aspect-[4/5] sm:aspect-[1/1] lg:aspect-[4/5]">
                 <img
-                  src="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&q=80&w=1200"
-                  alt="Precision Barbering and Hot Shave Service at Best Salon"
+                  src="/images/portfolio/barbing/barbing-curly-top-fade.jpg"
+                  alt="Textured Top & Clean Fade Haircut at Best Salon"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                  referrerPolicy="no-referrer"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#0A192F] via-[#0A192F]/20 to-transparent" />
 

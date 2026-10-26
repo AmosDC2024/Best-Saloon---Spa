@@ -218,8 +218,8 @@ export default function SignagePage() {
             >
               <div className="relative rounded-3xl overflow-hidden border border-white/15 bg-[#1F2937] shadow-2xl group aspect-[4/5] sm:aspect-[1/1] lg:aspect-[4/5]">
                 <img
-                  src="https://images.unsplash.com/photo-1563245372-f21724e3856d?auto=format&fit=crop&q=80&w=1200"
-                  alt="3D Illuminated Channel Letters and Architectural Signage Fabrication"
+                  src="/images/portfolio/signage/signage-ondipa-monument-sign.jpg"
+                  alt="ONDIPA Multi-Panel Architectural Monument Signage Fabrication"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#0A192F] via-[#0A192F]/20 to-transparent" />

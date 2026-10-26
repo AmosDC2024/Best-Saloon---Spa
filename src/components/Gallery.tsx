@@ -6,6 +6,72 @@ import { Camera, ExternalLink } from 'lucide-react';
 
 const styles = [
   {
+    id: 'b-curly-top-fade',
+    title: 'Textured Top & Clean Fade',
+    category: 'Featured Haircut',
+    image: '/images/portfolio/barbing/barbing-curly-top-fade.jpg'
+  },
+  {
+    id: 'b-classic-fade-beard',
+    title: 'Classic Fade & Beard',
+    category: 'Beards & Fades',
+    image: '/images/portfolio/barbing/barbing-classic-fade-beard-portrait.jpg'
+  },
+  {
+    id: 'b-sharp-fade-beard',
+    title: 'Precision Fade & Beard Detail',
+    category: 'Precision Detailing',
+    image: '/images/portfolio/barbing/barbing-sharp-fade-beard-detail.jpg'
+  },
+  {
+    id: 'b-taper-fade',
+    title: 'Taper Fade Profile',
+    category: 'Taper Fade',
+    image: '/images/portfolio/barbing/barbing-taper-fade-front-profile.jpg'
+  },
+  {
+    id: 'b-low-fade',
+    title: 'Low Fade Profile',
+    category: 'Low Fade',
+    image: '/images/portfolio/barbing/barbing-low-fade-profile.jpg'
+  },
+  {
+    id: 'b-textured-top',
+    title: 'Textured Top Finish',
+    category: 'Textured Crop',
+    image: '/images/portfolio/barbing/barbing-textured-top-fade-portrait.png'
+  },
+  {
+    id: 'b-cross-design',
+    title: 'Custom Hair Design',
+    category: 'Creative Design',
+    image: '/images/portfolio/barbing/barbing-cross-design-fade-detail.png'
+  },
+  {
+    id: 'b-fade-back',
+    title: 'Fade & Neckline Detail',
+    category: 'Fade Detail',
+    image: '/images/portfolio/barbing/barbing-fade-back-detail.jpg'
+  },
+  {
+    id: 'b-barber-finishing-beard',
+    title: 'Finishing Touches',
+    category: 'Process Detailing',
+    image: '/images/portfolio/barbing/barbing-barber-finishing-beard.jpg'
+  },
+  {
+    id: 'b-cut-in-progress',
+    title: 'Precision Cut in Progress',
+    category: 'Scissor Work',
+    image: '/images/portfolio/barbing/barbing-cut-in-progress.jpg'
+  },
+  {
+    id: 'b-clipper-work',
+    title: 'Detailing the Hairline',
+    category: 'Hairline & Edges',
+    image: '/images/portfolio/barbing/barbing-clipper-work-in-progress.jpg'
+  },
+  {
     id: 1,
     title: 'Textured Crop',
     category: 'Fades',
