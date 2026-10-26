@@ -24,7 +24,7 @@ const courses = [
     duration: '8 Weeks (Intensive Studio Practicum)',
     level: 'Beginner to Advanced',
     badge: 'High Employment Rate',
-    image: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&q=80&w=800',
+    image: '/images/portfolio/barbing/barbing-cut-in-progress.jpg',
     desc: 'Master scissor ergonomics, low and skin fades, tapers, razor line-ups, hot towel shaving, facial massage, and executive salon client relationship management.',
     curriculum: [
       'Clipper mechanics & guard techniques',
@@ -41,7 +41,7 @@ const courses = [
     duration: '12 Weeks (Hands-on Workshop)',
     level: 'Comprehensive Technical Training',
     badge: 'Commercial Craft',
-    image: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800',
+    image: '/images/portfolio/signage/signage-vikky-mart-3d-lettering.jpg',
     desc: 'Learn laser-cut acrylic letter assembly, LED wiring and power supply load calculation, lightbox aluminum framing, vinyl plotter cutting, and secure site mounting.',
     curriculum: [
       'CorelDraw / CAD vector prep for laser cutting',
@@ -140,8 +140,8 @@ export default function TrainingPage() {
             <div className="lg:col-span-5 relative w-full">
               <div className="relative rounded-3xl overflow-hidden border border-white/15 shadow-2xl aspect-[16/10] sm:aspect-[4/3] lg:aspect-[16/11]">
                 <img
-                  src="https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?auto=format&fit=crop&q=80&w=1200"
-                  alt="Best Creative Hub Training Academy Workshop"
+                  src="/images/portfolio-hero.jpg"
+                  alt="Best Creative Hub Training Academy Workshop in Akure"
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#0A192F]/80 via-transparent to-transparent pointer-events-none" />

@@ -92,8 +92,8 @@ export default function AboutPage() {
             >
               <div className="relative rounded-3xl overflow-hidden border border-white/15 bg-[#1F2937] shadow-2xl group aspect-[4/5] sm:aspect-[1/1] lg:aspect-[4/5]">
                 <img
-                  src="https://images.unsplash.com/photo-1524758631624-e2822e304c36?auto=format&fit=crop&q=80&w=1200"
-                  alt="Best Creative Hub Physical Studio Architecture in Akure"
+                  src="/images/hub-hero.jpg"
+                  alt="Best Creative Hub Multi-Disciplinary Creative Studio and Atelier in Akure"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#0A192F] via-[#0A192F]/20 to-transparent" />
@@ -150,20 +150,44 @@ export default function AboutPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="rounded-3xl overflow-hidden aspect-[4/5] border border-white/10 bg-[#1F2937]">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="rounded-3xl overflow-hidden aspect-[4/5] border border-white/10 bg-[#1F2937] relative group shadow-xl">
               <img
-                src="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&q=80&w=600"
+                src="/images/portfolio/barbing/barbing-curly-top-fade.jpg"
                 alt="Master Barber Grooming at Best Salon"
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
               />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0A192F]/90 via-[#0A192F]/30 to-transparent flex items-end p-4">
+                <span className="text-[10px] uppercase tracking-wider font-bold text-amber-400">
+                  Best Salon &bull; Precision Cut
+                </span>
+              </div>
             </div>
-            <div className="rounded-3xl overflow-hidden aspect-[4/5] border border-white/10 bg-[#1F2937] mt-8">
+
+            <div className="rounded-3xl overflow-hidden aspect-[4/5] border border-white/10 bg-[#1F2937] relative group shadow-xl sm:translate-y-4">
+              <img
+                src="/images/portfolio/signage/signage-ondipa-monument-sign.jpg"
+                alt="3D Signage Engineering at Best Signs & Craft"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0A192F]/90 via-[#0A192F]/30 to-transparent flex items-end p-4">
+                <span className="text-[10px] uppercase tracking-wider font-bold text-sky-400">
+                  Best Signs &bull; Fabrication
+                </span>
+              </div>
+            </div>
+
+            <div className="rounded-3xl overflow-hidden aspect-[4/5] border border-white/10 bg-[#1F2937] relative group shadow-xl sm:translate-y-8">
               <img
                 src="https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?auto=format&fit=crop&q=80&w=600"
                 alt="Fine Art Canvas Creation at Best Art Studio"
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
               />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0A192F]/90 via-[#0A192F]/30 to-transparent flex items-end p-4">
+                <span className="text-[10px] uppercase tracking-wider font-bold text-emerald-400">
+                  Best Art &bull; Fine Studio
+                </span>
+              </div>
             </div>
           </div>
         </div>

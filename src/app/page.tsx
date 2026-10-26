@@ -33,7 +33,7 @@ const businesses = [
     accent: 'amber',
     stats: '10+ Master Barbers & Therapists',
     image:
-      'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&q=80&w=1200',
+      '/images/portfolio/barbing/barbing-curly-top-fade.jpg',
     tags: ['Skin Fades', 'Hot Towel Shave', 'Body Massage', 'Glow Facials'],
     ctaText: 'Explore Salon & Spa',
     actionText: 'Book Appointment',
@@ -49,7 +49,7 @@ const businesses = [
     accent: 'sky',
     stats: '500+ Commercial Installations',
     image:
-      'https://images.unsplash.com/photo-1542744094-3a31f272c490?auto=format&fit=crop&q=80&w=1200',
+      '/images/portfolio/signage/signage-ondipa-monument-sign.jpg',
     tags: ['3D Channel Letters', 'LED Lightboxes', 'Pylon Signage', 'Vehicle Wraps'],
     ctaText: 'Explore Signs & Craft',
     actionText: 'Request Quote',
@@ -220,8 +220,8 @@ export default function HomePage() {
             >
               <div className="relative rounded-3xl overflow-hidden border border-white/15 bg-[#1F2937] shadow-2xl group aspect-[4/5] sm:aspect-[1/1] lg:aspect-[4/5]">
                 <img
-                  src="https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&q=80&w=1200"
-                  alt="Best Creative Hub Flagship Workshop and Atelier"
+                  src="/images/hub-hero.jpg"
+                  alt="Best Creative Hub Flagship Multi-Disciplinary Workshop and Atelier in Akure"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#0A192F] via-[#0A192F]/20 to-transparent" />
@@ -478,8 +478,8 @@ export default function HomePage() {
 
             <div className="rounded-3xl overflow-hidden border border-white/15 aspect-[4/3] bg-[#1F2937] relative">
               <img
-                src="https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&q=80&w=1000"
-                alt="Creative Studio Atmosphere"
+                src="/images/portfolio-hero.jpg"
+                alt="Best Creative Hub Design and Craft Studio in Akure"
                 className="w-full h-full object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#0A192F]/90 via-transparent to-transparent flex items-end p-8">

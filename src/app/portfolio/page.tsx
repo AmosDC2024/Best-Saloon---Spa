@@ -16,7 +16,7 @@ import {
 import Link from 'next/link';
 import { useHub } from '../../context/HubContext';
 
-type CategoryFilter = 'all' | 'barbing' | 'salon' | 'signage' | 'art';
+type CategoryFilter = 'all' | 'barbing' | 'signage' | 'art';
 
 const portfolioItems = [
   // --- Barbing Works (11 New Supplied Works + 3 Original Salon Works) ---
@@ -132,7 +132,7 @@ const portfolioItems = [
   },
   {
     id: 's1',
-    category: 'salon',
+    category: 'barbing',
     businessName: 'Best Salon',
     title: 'Executive Low Skin Fade & Textured Crop',
     client: 'Private Executive Client',
@@ -142,7 +142,7 @@ const portfolioItems = [
   },
   {
     id: 's2',
-    category: 'salon',
+    category: 'barbing',
     businessName: 'Best Salon',
     title: 'Luxury Beard Sculpting & Hot Towel Treatment',
     client: 'Grooming Member',
@@ -152,7 +152,7 @@ const portfolioItems = [
   },
   {
     id: 's3',
-    category: 'salon',
+    category: 'barbing',
     businessName: 'Best Salon',
     title: 'Mid-Taper Fade & Waves Definition',
     client: 'Client Showcase',
@@ -273,8 +273,6 @@ export default function PortfolioPage() {
 
   const filteredItems = portfolioItems.filter((item) => {
     if (filter === 'all') return true;
-    if (filter === 'barbing') return item.category === 'barbing';
-    if (filter === 'salon') return item.category === 'salon' || item.category === 'barbing';
     return item.category === filter;
   });
 
@@ -329,8 +327,8 @@ export default function PortfolioPage() {
             <div className="lg:col-span-5 w-full">
               <div className="relative rounded-3xl overflow-hidden border border-white/15 bg-[#1F2937] shadow-2xl group aspect-[4/5] sm:aspect-[1/1] lg:aspect-[4/5]">
                 <img
-                  src="https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?auto=format&fit=crop&q=80&w=1200"
-                  alt="Best Creative Hub Portfolio Showcase"
+                  src="/images/portfolio-hero.jpg"
+                  alt="Best Creative Hub Multi-Disciplinary Design and Craft Portfolio"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#0A192F] via-[#0A192F]/20 to-transparent" />
@@ -356,11 +354,10 @@ export default function PortfolioPage() {
 
       {/* 2. FILTER TABS */}
       <section id="gallery-grid" className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto pb-12">
-        <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 p-2 rounded-2xl bg-[#1F2937] border border-white/10 max-w-3xl mx-auto shadow-lg">
+        <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 p-2 rounded-2xl bg-[#1F2937] border border-white/10 max-w-2xl mx-auto shadow-lg">
           {[
             { id: 'all', label: 'All Works' },
             { id: 'barbing', label: 'Barbing', icon: Scissors },
-            { id: 'salon', label: 'Best Salon', icon: Scissors },
             { id: 'signage', label: 'Signs & Craft', icon: Layers },
             { id: 'art', label: 'Best Art', icon: Palette },
           ].map((tab) => {

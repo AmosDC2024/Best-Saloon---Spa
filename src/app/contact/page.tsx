@@ -130,8 +130,8 @@ export default function ContactPage() {
             <div className="lg:col-span-5 relative w-full">
               <div className="relative rounded-3xl overflow-hidden border border-white/15 shadow-2xl aspect-[16/10] sm:aspect-[4/3] lg:aspect-[16/11]">
                 <img
-                  src="https://images.unsplash.com/photo-1497366811353-6870744d04b2?auto=format&fit=crop&q=80&w=1200"
-                  alt="Best Creative Hub Concierge Lounge"
+                  src="/images/hub-hero.jpg"
+                  alt="Best Creative Hub Concierge and Creative Studio in Akure"
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#0A192F]/80 via-transparent to-transparent pointer-events-none" />

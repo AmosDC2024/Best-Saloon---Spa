@@ -84,18 +84,6 @@ const styles = [
     image: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&q=80&w=800'
   },
   {
-    id: 3,
-    title: 'Classic Pompadour',
-    category: 'Classic',
-    image: 'https://images.unsplash.com/photo-1621605815841-28d944683b83?auto=format&fit=crop&q=80&w=800'
-  },
-  {
-    id: 4,
-    title: 'Mid Skin Fade',
-    category: 'Fades',
-    image: 'https://images.unsplash.com/photo-1593702295094-ada74bc4a149?auto=format&fit=crop&q=80&w=800'
-  },
-  {
     id: 5,
     title: 'Waves & Taper',
     category: 'Waves',

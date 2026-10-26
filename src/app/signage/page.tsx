@@ -25,7 +25,7 @@ const signageServices = [
     icon: Zap,
     title: '3D Illuminated Channel Letters',
     desc: 'Precision laser-cut acrylic and metal channel letters featuring front-lit, halo backlit, or dual illumination. Built with weather-sealed IP67 Samsung LEDs.',
-    image: 'https://images.unsplash.com/photo-1563245372-f21724e3856d?auto=format&fit=crop&q=80&w=800',
+    image: '/images/portfolio/signage/signage-vikky-mart-3d-lettering.jpg',
     tags: ['Storefronts', 'Halo Backlit', 'Stainless Steel', 'Acrylic Face'],
   },
   {
@@ -39,7 +39,7 @@ const signageServices = [
     icon: Building2,
     title: 'Pylon, Monolith & Directional Signs',
     desc: 'Monumental roadside pylon towers and free-standing directional monoliths engineered to withstand harsh wind and weather while providing 24/7 brand visibility.',
-    image: 'https://images.unsplash.com/photo-1542744094-3a31f272c490?auto=format&fit=crop&q=80&w=800',
+    image: '/images/portfolio/signage/signage-money-wealth-pylon.jpg',
     tags: ['Plaza Entrances', 'Wayfinding', 'Steel Structure', 'Dual Sided'],
   },
   {
@@ -60,7 +60,7 @@ const signageServices = [
     icon: Sparkles,
     title: 'Bespoke Reception Logos & Craft Plaques',
     desc: 'Luxury executive reception feature walls, gold-finished brass plaques, frosted glass privacy vinyl, and custom laser-engraved acrylic craft art.',
-    image: 'https://images.unsplash.com/photo-1497366811353-6870744d04b2?auto=format&fit=crop&q=80&w=800',
+    image: '/images/portfolio/signage/signage-amity-house-building-sign.jpg',
     tags: ['Reception Walls', 'Engraved Brass', 'Glass Frosting', 'Boardrooms'],
   },
 ];

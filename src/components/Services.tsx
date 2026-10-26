@@ -12,7 +12,7 @@ const services = [
     price: '5,000',
     duration: 45,
     icon: Scissors,
-    image: 'https://images.unsplash.com/photo-1621605815971-fbc98d665033?auto=format&fit=crop&q=80&w=800'
+    image: '/images/portfolio/barbing/barbing-classic-fade-beard-portrait.jpg'
   },
   {
     id: 'skin-fade',
@@ -21,7 +21,7 @@ const services = [
     price: '7,000',
     duration: 60,
     icon: Zap,
-    image: 'https://images.unsplash.com/photo-1622286332618-f2803b1950d4?auto=format&fit=crop&q=80&w=800'
+    image: '/images/portfolio/barbing/barbing-curly-top-fade.jpg'
   },
   {
     id: 'massage',
@@ -30,7 +30,7 @@ const services = [
     price: '15,000',
     duration: 60,
     icon: Sparkles,
-    image: 'https://images.unsplash.com/photo-1519823551278-64ac92734fb1?auto=format&fit=crop&q=80&w=800'
+    image: '/images/spa-massage.jpg'
   },
   {
     id: 'facial-spa',
@@ -39,7 +39,7 @@ const services = [
     price: '12,000',
     duration: 45,
     icon: Flower2,
-    image: 'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?auto=format&fit=crop&q=80&w=800'
+    image: '/images/glow-facial.jpg'
   },
   {
     id: 'beard-trim',
@@ -48,7 +48,7 @@ const services = [
     price: '3,500',
     duration: 30,
     icon: UserCheck,
-    image: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&q=80&w=800'
+    image: '/images/portfolio/barbing/barbing-sharp-fade-beard-detail.jpg'
   },
   {
     id: 'hot-shave',
@@ -57,7 +57,7 @@ const services = [
     price: '6,000',
     duration: 45,
     icon: Star,
-    image: 'https://images.unsplash.com/photo-1593702295094-ada74bc4a149?auto=format&fit=crop&q=80&w=800'
+    image: '/images/portfolio/barbing/barbing-barber-finishing-beard.jpg'
   }
 ];
 
