@@ -79,19 +79,23 @@ export default function AdminSchedule() {
           <h2 className="text-3xl font-black uppercase tracking-tighter">
             Daily <span className="text-amber-500">Schedule</span>
           </h2>
-          <div className="flex items-center gap-4 mt-2">
+          <div className="flex items-center gap-2 sm:gap-4 mt-2">
             <button 
+              type="button"
               onClick={() => changeDate(-1)}
-              className="p-2 bg-white/5 hover:bg-white/10 rounded-lg text-white/60 hover:text-white transition-all"
+              className="p-2 bg-white/5 hover:bg-white/10 rounded-lg text-white/60 hover:text-white transition-all shrink-0 cursor-pointer"
+              aria-label="Previous Day"
             >
               <Calendar className="w-4 h-4 rotate-180" />
             </button>
-            <p className="text-white font-bold uppercase tracking-[0.3em] text-sm">
+            <p className="text-white font-bold uppercase tracking-wider sm:tracking-[0.3em] text-xs sm:text-sm">
               {format(selectedDate, 'PPPP')}
             </p>
             <button 
+              type="button"
               onClick={() => changeDate(1)}
-              className="p-2 bg-white/5 hover:bg-white/10 rounded-lg text-white/60 hover:text-white transition-all"
+              className="p-2 bg-white/5 hover:bg-white/10 rounded-lg text-white/60 hover:text-white transition-all shrink-0 cursor-pointer"
+              aria-label="Next Day"
             >
               <Calendar className="w-4 h-4" />
             </button>
@@ -107,7 +111,7 @@ export default function AdminSchedule() {
               setLoading(true);
             }
           }}
-          className="bg-zinc-900 border border-white/10 rounded-xl px-4 py-2 text-sm text-white focus:border-amber-500 outline-none transition-all"
+          className="bg-zinc-900 border border-white/10 rounded-xl px-4 py-2 text-sm text-white focus:border-amber-500 outline-none transition-all w-full sm:w-auto"
         />
       </div>
 

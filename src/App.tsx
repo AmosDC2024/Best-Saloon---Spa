@@ -128,7 +128,9 @@ function App() {
       
       <main>
         {isAdminView && isAdmin ? (
-          <AdminDashboard />
+          <div className="pt-20">
+            <AdminDashboard />
+          </div>
         ) : (
           <>
             <Hero 
