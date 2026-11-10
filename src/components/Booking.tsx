@@ -2,12 +2,12 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Calendar, Clock, User, CheckCircle2, Scissors, MessageSquare, LogIn, Sparkles, Loader2 } from 'lucide-react';
+import { Calendar, Clock, User, CheckCircle2, Scissors, MessageSquare, LogIn, Sparkles, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { auth, db } from '../firebase';
 import { collection, addDoc, query, where, onSnapshot, serverTimestamp, getDocFromServer, doc, getDoc } from 'firebase/firestore';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { handleFirestoreError, OperationType } from '../lib/firebaseUtils';
-import { format, addDays, startOfToday, isSameDay } from 'date-fns';
+import { format, addDays, startOfToday, isSameDay, startOfMonth, endOfMonth, eachDayOfInterval, isBefore, addMonths, subMonths, getDay } from 'date-fns';
 import { cn } from '../lib/utils';
 import AuthModal from './AuthModal';
 import { toast } from 'sonner';
@@ -46,6 +46,8 @@ export default function Booking({ onOpenAuth }: BookingProps) {
   const [userData, setUserData] = useState<any>(null);
   const [selectedCategory, setSelectedCategory] = useState(categories[0]);
   const [selectedDate, setSelectedDate] = useState(startOfToday());
+  const [showCalendar, setShowCalendar] = useState(false);
+  const [calendarMonth, setCalendarMonth] = useState(startOfToday());
   const [selectedTime, setSelectedTime] = useState('');
   const [selectedService, setSelectedService] = useState(services[0]);
   const [loading, setLoading] = useState(false);
@@ -289,13 +291,34 @@ export default function Booking({ onOpenAuth }: BookingProps) {
                   {/* Date Selection */}
                   <div>
                     <label className="flex items-center gap-2 text-white/50 text-xs font-bold uppercase tracking-wider mb-4">
-                      <Calendar className="w-3.5 h-3.5 text-amber-400" /> 3. Select Date
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setCalendarMonth(selectedDate);
+                          setShowCalendar(!showCalendar);
+                        }}
+                        className="p-0 bg-transparent border-none cursor-pointer hover:scale-110 transition-transform"
+                        title="Open calendar"
+                      >
+                        <Calendar className="w-3.5 h-3.5 text-amber-400" />
+                      </button>
+                      3. Select Date
+                      {showCalendar && (
+                        <span className="ml-auto text-[10px] text-amber-400/60 normal-case tracking-normal font-medium">
+                          Tap calendar icon to close
+                        </span>
+                      )}
                     </label>
+
+                    {/* Quick 7-day selector */}
                     <div className="flex flex-wrap gap-3 pb-4">
                       {next7Days.map((date) => (
                         <button
                           key={date.toISOString()}
-                          onClick={() => setSelectedDate(date)}
+                          onClick={() => {
+                            setSelectedDate(date);
+                            setShowCalendar(false);
+                          }}
                           className={cn(
                             'flex-shrink-0 w-[calc(33.33%-12px)] sm:w-20 h-24 rounded-2xl border flex flex-col items-center justify-center transition-all cursor-pointer',
                             isSameDay(selectedDate, date)
@@ -310,6 +333,104 @@ export default function Booking({ onOpenAuth }: BookingProps) {
                         </button>
                       ))}
                     </div>
+
+                    {/* Show selected date if outside the 7-day range */}
+                    {!next7Days.some((d) => isSameDay(d, selectedDate)) && (
+                      <div className="mb-4 px-4 py-3 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center gap-3">
+                        <Calendar className="w-4 h-4 text-amber-400 shrink-0" />
+                        <span className="text-sm font-bold text-amber-400">
+                          Selected: {format(selectedDate, 'EEEE, MMMM d, yyyy')}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Calendar Date Picker */}
+                    <AnimatePresence>
+                      {showCalendar && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                          className="overflow-hidden"
+                        >
+                          <div className="p-5 rounded-2xl bg-[#0A192F] border border-white/10 mb-4">
+                            {/* Month/Year Navigation */}
+                            <div className="flex items-center justify-between mb-5">
+                              <button
+                                type="button"
+                                onClick={() => setCalendarMonth(subMonths(calendarMonth, 1))}
+                                disabled={isBefore(endOfMonth(subMonths(calendarMonth, 1)), startOfToday())}
+                                className="p-2 rounded-lg hover:bg-white/10 text-white/60 hover:text-white transition-all disabled:opacity-20 disabled:cursor-not-allowed"
+                              >
+                                <ChevronLeft className="w-4 h-4" />
+                              </button>
+                              <span className="text-sm font-bold text-white uppercase tracking-wider">
+                                {format(calendarMonth, 'MMMM yyyy')}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => setCalendarMonth(addMonths(calendarMonth, 1))}
+                                className="p-2 rounded-lg hover:bg-white/10 text-white/60 hover:text-white transition-all"
+                              >
+                                <ChevronRight className="w-4 h-4" />
+                              </button>
+                            </div>
+
+                            {/* Day-of-week headers */}
+                            <div className="grid grid-cols-7 gap-1 mb-2">
+                              {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map((day) => (
+                                <div key={day} className="text-center text-[10px] font-bold text-white/30 uppercase tracking-wider py-1">
+                                  {day}
+                                </div>
+                              ))}
+                            </div>
+
+                            {/* Calendar grid */}
+                            <div className="grid grid-cols-7 gap-1">
+                              {/* Leading empty cells for alignment */}
+                              {Array.from({ length: getDay(startOfMonth(calendarMonth)) }).map((_, i) => (
+                                <div key={`empty-${i}`} />
+                              ))}
+
+                              {/* Day cells */}
+                              {eachDayOfInterval({
+                                start: startOfMonth(calendarMonth),
+                                end: endOfMonth(calendarMonth),
+                              }).map((day) => {
+                                const isPast = isBefore(day, startOfToday());
+                                const isSelected = isSameDay(selectedDate, day);
+                                const isToday = isSameDay(startOfToday(), day);
+
+                                return (
+                                  <button
+                                    key={day.toISOString()}
+                                    type="button"
+                                    disabled={isPast}
+                                    onClick={() => {
+                                      setSelectedDate(day);
+                                      setSelectedTime('');
+                                      setShowCalendar(false);
+                                    }}
+                                    className={cn(
+                                      'h-10 rounded-lg text-xs font-bold transition-all',
+                                      isPast
+                                        ? 'text-white/10 cursor-not-allowed'
+                                        : isSelected
+                                          ? 'bg-amber-500 text-black shadow-lg shadow-amber-500/20'
+                                          : isToday
+                                            ? 'bg-white/10 text-amber-400 hover:bg-white/15'
+                                            : 'text-white/60 hover:bg-white/10 hover:text-white cursor-pointer'
+                                    )}
+                                  >
+                                    {format(day, 'd')}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
 
                   {/* Time Selection */}
