@@ -131,16 +131,6 @@ const portfolioItems = [
     tags: ['Lineup', 'Clipper Detailing', 'Edge Up'],
   },
   {
-    id: 's1',
-    category: 'barbing',
-    businessName: 'Best Salon',
-    title: 'Executive Low Skin Fade & Textured Crop',
-    client: 'Private Executive Client',
-    description: 'Zero-gap clipper precision with textured scissor top and razor-sharp perimeter line up.',
-    image: 'https://images.unsplash.com/photo-1622286342621-4bd786c2447c?auto=format&fit=crop&q=80&w=800',
-    tags: ['Haircut', 'Skin Fade', 'Razor Finish'],
-  },
-  {
     id: 's2',
     category: 'barbing',
     businessName: 'Best Salon',
@@ -150,18 +140,8 @@ const portfolioItems = [
     image: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&q=80&w=800',
     tags: ['Beard', 'Hot Towel', 'Luxury Treatment'],
   },
-  {
-    id: 's3',
-    category: 'barbing',
-    businessName: 'Best Salon',
-    title: 'Mid-Taper Fade & Waves Definition',
-    client: 'Client Showcase',
-    description: 'Clean temple taper with natural wave pattern enhancement and nourishing balm.',
-    image: 'https://images.unsplash.com/photo-1599351431202-1e0f0137899a?auto=format&fit=crop&q=80&w=800',
-    tags: ['Taper Fade', 'Waves', 'Styling'],
-  },
 
-  // --- Signs & Craft Works (4 New Supplied Works + 3 Original Signage Works) ---
+  // --- Signs & Craft Works ---
   {
     id: 'sg-ondipa-monument',
     category: 'signage',
@@ -201,36 +181,6 @@ const portfolioItems = [
     description: 'Dual-sided roadside pylon monolith sign with structured steel frame and high-durability finish.',
     image: '/images/portfolio/signage/signage-money-wealth-pylon.jpg',
     tags: ['Pylon Monolith', 'Roadside Sign', 'Steel Fabrication'],
-  },
-  {
-    id: 'sg1',
-    category: 'signage',
-    businessName: 'Best Signs & Craft',
-    title: '3D Halo-Backlit Channel Letters',
-    client: 'Apex Corporate Plaza, Alagbaka',
-    description: 'Brushed gold stainless steel faces with warm 3000K waterproof Samsung LED illumination.',
-    image: 'https://images.unsplash.com/photo-1542744094-3a31f272c490?auto=format&fit=crop&q=80&w=800',
-    tags: ['3D Letters', 'Halo Lit', 'Stainless Steel'],
-  },
-  {
-    id: 'sg2',
-    category: 'signage',
-    businessName: 'Best Signs & Craft',
-    title: 'Slimline Outdoor LED Lightbox Display',
-    client: 'Urban Gourmet Restaurant',
-    description: 'Weather-sealed aluminum extruded frame with high-clarity acrylic diffuser panel.',
-    image: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80&w=800',
-    tags: ['LED Lightbox', 'Storefront', 'Weatherproof'],
-  },
-  {
-    id: 'sg3',
-    category: 'signage',
-    businessName: 'Best Signs & Craft',
-    title: 'Full Commercial Fleet Vehicle Wrap',
-    client: 'Swift Logistics Nigeria',
-    description: 'Cast vinyl vehicle wrap with UV protective overlaminate for high-traffic branding.',
-    image: 'https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800',
-    tags: ['Vehicle Wrap', 'Fleet Branding', 'UV Laminate'],
   },
 
   // --- Art Studio Works ---
