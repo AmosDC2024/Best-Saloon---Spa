@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Calendar, Clock, User, CheckCircle2, Scissors, MessageSquare, LogIn, Sparkles, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Calendar, Clock, User, CheckCircle2, Scissors, MessageSquare, LogIn, Sparkles, Loader2, ChevronLeft, ChevronRight, ChevronDown, Check } from 'lucide-react';
 import { auth, db } from '../firebase';
 import { collection, addDoc, query, where, onSnapshot, serverTimestamp, getDocFromServer, doc, getDoc } from 'firebase/firestore';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
@@ -18,24 +18,83 @@ const timeSlots = [
   '05:00 PM', '06:00 PM', '07:00 PM'
 ];
 
-const categories = [
+export interface CategoryItem {
+  id: 'hair' | 'beard' | 'spa' | 'treatments';
+  name: string;
+}
+
+const categories: CategoryItem[] = [
   { id: 'hair', name: 'Hair' },
   { id: 'beard', name: 'Beard' },
   { id: 'spa', name: 'Spa & Wellness' },
   { id: 'treatments', name: 'Treatments' }
 ];
 
-const services = [
+export interface ServiceItem {
+  id: string;
+  category: 'hair' | 'beard' | 'spa' | 'treatments';
+  name: string;
+  price: string;
+}
+
+const services: ServiceItem[] = [
+  // ── HAIR (10 services) ───────────────────────────────────────────────
   { id: 'haircut', category: 'hair', name: 'Classic Haircut', price: '5,000' },
   { id: 'skin-fade', category: 'hair', name: 'Skin Fade', price: '7,000' },
-  { id: 'beard-trim', category: 'beard', name: 'Beard Sculpting', price: '3,500' },
-  { id: 'hot-shave', category: 'beard', name: 'Luxury Hot Shave', price: '6,000' },
-  { id: 'massage', category: 'spa', name: 'Full Body Massage', price: '15,000' },
-  { id: 'facial-spa', category: 'spa', name: 'Luxury Glow Facial', price: '12,000' },
-  { id: 'manicure', category: 'spa', name: 'Premium Manicure', price: '8,000' },
-  { id: 'facial', category: 'treatments', name: 'Deep Cleanse Facial', price: '10,000' },
-  { id: 'scalp', category: 'treatments', name: 'Scalp Massage', price: '4,000' }
+  { id: 'low-fade', category: 'hair', name: 'Low Fade', price: 'Price on request' },
+  { id: 'mid-fade', category: 'hair', name: 'Mid Fade', price: 'Price on request' },
+  { id: 'high-fade', category: 'hair', name: 'High Fade', price: 'Price on request' },
+  { id: 'taper-fade', category: 'hair', name: 'Taper Fade', price: 'Price on request' },
+  { id: 'haircut-styling', category: 'hair', name: 'Haircut & Styling', price: 'Price on request' },
+  { id: 'hair-wash', category: 'hair', name: 'Hair Wash', price: 'Price on request' },
+  { id: 'hair-colouring', category: 'hair', name: 'Hair Colouring', price: 'Price on request' },
+  { id: 'hair-treatment', category: 'hair', name: 'Hair Treatment', price: 'Price on request' },
+
+  // ── BEARD (10 services) ──────────────────────────────────────────────
+  { id: 'beard-trim', category: 'beard', name: 'Beard Trim', price: '3,500' },
+  { id: 'beard-shaping', category: 'beard', name: 'Beard Shaping', price: 'Price on request' },
+  { id: 'beard-grooming', category: 'beard', name: 'Beard Grooming', price: 'Price on request' },
+  { id: 'beard-lineup', category: 'beard', name: 'Beard Line-up', price: 'Price on request' },
+  { id: 'beard-colouring', category: 'beard', name: 'Beard Colouring', price: 'Price on request' },
+  { id: 'hot-towel-shave', category: 'beard', name: 'Hot Towel Shave', price: '6,000' },
+  { id: 'full-beard-styling', category: 'beard', name: 'Full Beard Styling', price: 'Price on request' },
+  { id: 'mustache-grooming', category: 'beard', name: 'Mustache Grooming', price: 'Price on request' },
+  { id: 'beard-conditioning', category: 'beard', name: 'Beard Conditioning', price: 'Price on request' },
+  { id: 'premium-beard-treatment', category: 'beard', name: 'Premium Beard Treatment', price: 'Price on request' },
+
+  // ── SPA & WELLNESS (11 services) ─────────────────────────────────────
+  { id: 'swedish-massage', category: 'spa', name: 'Swedish Massage', price: 'Price on request' },
+  { id: 'deep-tissue-massage', category: 'spa', name: 'Deep Tissue Massage', price: 'Price on request' },
+  { id: 'relaxation-massage', category: 'spa', name: 'Relaxation Massage', price: 'Price on request' },
+  { id: 'aromatherapy', category: 'spa', name: 'Aromatherapy', price: 'Price on request' },
+  { id: 'body-scrub', category: 'spa', name: 'Body Scrub', price: 'Price on request' },
+  { id: 'body-polish', category: 'spa', name: 'Body Polish', price: 'Price on request' },
+  { id: 'facial-spa', category: 'spa', name: 'Facial Spa', price: '12,000' },
+  { id: 'foot-spa', category: 'spa', name: 'Foot Spa', price: 'Price on request' },
+  { id: 'manicure', category: 'spa', name: 'Manicure', price: '8,000' },
+  { id: 'pedicure', category: 'spa', name: 'Pedicure', price: 'Price on request' },
+  { id: 'full-body-massage', category: 'spa', name: 'Full Body Massage', price: '15,000' },
+
+  // ── TREATMENTS (11 services) ─────────────────────────────────────────
+  { id: 'hair-conditioning-treatment', category: 'treatments', name: 'Hair Conditioning Treatment', price: 'Price on request' },
+  { id: 'scalp-treatment', category: 'treatments', name: 'Scalp Treatment', price: '4,000' },
+  { id: 'hair-repair-treatment', category: 'treatments', name: 'Hair Repair Treatment', price: 'Price on request' },
+  { id: 'anti-dandruff-treatment', category: 'treatments', name: 'Anti-Dandruff Treatment', price: 'Price on request' },
+  { id: 'facial-cleansing', category: 'treatments', name: 'Facial Cleansing', price: 'Price on request' },
+  { id: 'deep-cleansing-facial', category: 'treatments', name: 'Deep Cleansing Facial', price: '10,000' },
+  { id: 'skin-rejuvenation', category: 'treatments', name: 'Skin Rejuvenation', price: 'Price on request' },
+  { id: 'hair-restoration-consultation', category: 'treatments', name: 'Hair Restoration Consultation', price: 'Price on request' },
+  { id: 'moisturising-treatment', category: 'treatments', name: 'Moisturising Treatment', price: 'Price on request' },
+  { id: 'premium-hair-treatment', category: 'treatments', name: 'Premium Hair Treatment', price: 'Price on request' },
+  { id: 'scalp-massage', category: 'treatments', name: 'Scalp Massage', price: '4,000' }
 ];
+
+const formatPrice = (price: string) => {
+  if (!price || price.toLowerCase().includes('request')) {
+    return 'Price on request';
+  }
+  return price.startsWith('₦') ? price : `₦${price}`;
+};
 
 interface BookingProps {
   onOpenAuth: (mode: 'login' | 'register') => void;
@@ -44,12 +103,14 @@ interface BookingProps {
 export default function Booking({ onOpenAuth }: BookingProps) {
   const [user, setUser] = useState<FirebaseUser | null>(null);
   const [userData, setUserData] = useState<any>(null);
-  const [selectedCategory, setSelectedCategory] = useState(categories[0]);
+  const [selectedCategory, setSelectedCategory] = useState<CategoryItem>(categories[0]);
+  const [selectedService, setSelectedService] = useState<ServiceItem | null>(null);
+  const [isServiceDropdownOpen, setIsServiceDropdownOpen] = useState(false);
+  const serviceDropdownRef = useRef<HTMLDivElement>(null);
   const [selectedDate, setSelectedDate] = useState(startOfToday());
   const [showCalendar, setShowCalendar] = useState(false);
   const [calendarMonth, setCalendarMonth] = useState(startOfToday());
   const [selectedTime, setSelectedTime] = useState('');
-  const [selectedService, setSelectedService] = useState(services[0]);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
@@ -68,21 +129,48 @@ export default function Booking({ onOpenAuth }: BookingProps) {
     return () => unsubscribe();
   }, []);
 
-  // Filter services based on selected category
-  const filteredServices = services.filter(s => s.category === selectedCategory.id);
-
-  // Reset selected service when category changes if current service is not in new category
+  // Close service dropdown on click/touch outside
   useEffect(() => {
-    if (selectedService.category !== selectedCategory.id) {
-      setSelectedService(filteredServices[0]);
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
+      if (
+        serviceDropdownRef.current &&
+        !serviceDropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsServiceDropdownOpen(false);
+      }
+    };
+
+    if (isServiceDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('touchstart', handleClickOutside);
     }
-  }, [selectedCategory]);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, [isServiceDropdownOpen]);
+
+  // Filter services dynamically based on selected category
+  const filteredServices = services.filter((s) => s.category === selectedCategory.id);
+
+  // Switch category and reset the selected service
+  const handleCategorySelect = (cat: CategoryItem) => {
+    setSelectedCategory(cat);
+    setSelectedService(null);
+    setIsServiceDropdownOpen(false);
+  };
 
   const next7Days = Array.from({ length: 7 }, (_, i) => addDays(startOfToday(), i));
 
   const handleBooking = async () => {
     if (!user) {
       onOpenAuth('login');
+      return;
+    }
+
+    if (!selectedService) {
+      toast.error('Please choose a service to proceed');
+      setIsServiceDropdownOpen(true);
       return;
     }
 
@@ -99,6 +187,7 @@ export default function Booking({ onOpenAuth }: BookingProps) {
         userEmail: user.email || 'No Email',
         serviceId: selectedService.id,
         serviceName: selectedService.name,
+        price: selectedService.price,
         category: selectedCategory.name,
         date: format(selectedDate, 'yyyy-MM-dd'),
         time: selectedTime,
@@ -137,6 +226,7 @@ export default function Booking({ onOpenAuth }: BookingProps) {
 
       setSuccess(true);
       // Reset form
+      setSelectedService(null);
       setSelectedTime('');
       
       setTimeout(() => setSuccess(false), 5000);
@@ -149,6 +239,12 @@ export default function Booking({ onOpenAuth }: BookingProps) {
   };
 
   const handleWhatsApp = () => {
+    if (!selectedService) {
+      toast.error('Please choose a service first');
+      setIsServiceDropdownOpen(true);
+      return;
+    }
+
     const message = `Hi Best Salon at Best Creative Hub! I'd like to book a ${selectedService.name} (${selectedCategory.name}) on ${format(selectedDate, 'PPP')} at ${selectedTime}. My name is ${userData?.displayName || user?.displayName || 'a client'}.`;
     const url = `https://api.whatsapp.com/send?phone=2348068059823&text=${encodeURIComponent(message)}`;
     window.open(url, '_blank');
@@ -247,7 +343,8 @@ export default function Booking({ onOpenAuth }: BookingProps) {
                       {categories.map((cat) => (
                         <button
                           key={cat.id}
-                          onClick={() => setSelectedCategory(cat)}
+                          type="button"
+                          onClick={() => handleCategorySelect(cat)}
                           className={cn(
                             'px-6 py-3 rounded-xl border text-xs font-bold transition-all whitespace-nowrap cursor-pointer',
                             selectedCategory.id === cat.id
@@ -261,30 +358,129 @@ export default function Booking({ onOpenAuth }: BookingProps) {
                     </div>
                   </div>
 
-                  {/* Service Selection */}
+                  {/* Service Selection Dropdown */}
                   <div>
                     <label className="flex items-center gap-2 text-white/50 text-xs font-bold uppercase tracking-wider mb-4">
                       <Scissors className="w-3.5 h-3.5 text-amber-400" /> 2. Select Service
                     </label>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      {filteredServices.map((service) => (
-                        <button
-                          key={service.id}
-                          onClick={() => setSelectedService(service)}
-                          className={cn(
-                            'p-4 rounded-2xl border text-left transition-all flex justify-between items-center cursor-pointer',
-                            selectedService.id === service.id
-                              ? 'bg-amber-500 border-amber-500 text-black shadow-lg shadow-amber-500/20'
-                              : 'bg-[#0A192F] border-white/10 text-white/70 hover:border-white/20'
+
+                    <div ref={serviceDropdownRef} className="relative">
+                      {/* Dropdown Trigger Button */}
+                      <button
+                        type="button"
+                        onClick={() => setIsServiceDropdownOpen((prev) => !prev)}
+                        className={cn(
+                          'w-full p-4 sm:p-5 rounded-2xl border text-left transition-all flex items-center justify-between cursor-pointer group',
+                          isServiceDropdownOpen
+                            ? 'bg-[#0A192F] border-amber-500 ring-2 ring-amber-500/20 shadow-lg shadow-amber-500/10'
+                            : selectedService
+                              ? 'bg-[#0A192F] border-amber-500/60 hover:border-amber-500'
+                              : 'bg-[#0A192F] border-white/10 hover:border-white/20'
+                        )}
+                        aria-haspopup="listbox"
+                        aria-expanded={isServiceDropdownOpen}
+                      >
+                        <div className="flex-1 min-w-0 pr-3">
+                          {selectedService ? (
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-4">
+                              <span className="font-bold text-white uppercase tracking-tight text-sm sm:text-base truncate">
+                                {selectedService.name}
+                              </span>
+                              <span className={cn(
+                                'text-xs sm:text-sm font-black whitespace-nowrap',
+                                selectedService.price.toLowerCase().includes('request')
+                                  ? 'text-white/50 font-medium'
+                                  : 'text-amber-400'
+                              )}>
+                                {formatPrice(selectedService.price)}
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="text-white/40 text-sm font-semibold">
+                              Choose a service
+                            </span>
                           )}
-                        >
-                          <span className="font-bold uppercase tracking-tight">{service.name}</span>
-                          <span className={cn(
-                            'text-sm font-black',
-                            selectedService.id === service.id ? 'text-black/70' : 'text-amber-400'
-                          )}>₦{service.price}</span>
-                        </button>
-                      ))}
+                        </div>
+
+                        <div className="flex items-center gap-2 shrink-0">
+                          {selectedService && (
+                            <span className="hidden sm:inline-block w-2 h-2 rounded-full bg-amber-500" />
+                          )}
+                          <ChevronDown
+                            className={cn(
+                              'w-4 h-4 text-amber-400 transition-transform duration-200',
+                              isServiceDropdownOpen && 'rotate-180'
+                            )}
+                          />
+                        </div>
+                      </button>
+
+                      {/* Dropdown Options Menu */}
+                      <AnimatePresence>
+                        {isServiceDropdownOpen && (
+                          <motion.div
+                            initial={{ opacity: 0, y: -8, scale: 0.98 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: -8, scale: 0.98 }}
+                            transition={{ duration: 0.15 }}
+                            className="absolute top-full left-0 right-0 mt-2 z-40 bg-[#0A192F] border border-white/15 rounded-2xl shadow-2xl overflow-hidden"
+                          >
+                            <div className="p-2.5 border-b border-white/5 flex items-center justify-between text-[11px] text-white/40 px-4 bg-white/[0.02]">
+                              <span className="uppercase tracking-wider font-bold text-amber-400/80">
+                                {selectedCategory.name} Services ({filteredServices.length})
+                              </span>
+                              <span>Select an option</span>
+                            </div>
+
+                            <div className="max-h-64 sm:max-h-72 overflow-y-auto divide-y divide-white/5 overscroll-contain">
+                              {filteredServices.map((service) => {
+                                const isSelected = selectedService?.id === service.id;
+                                return (
+                                  <button
+                                    key={service.id}
+                                    type="button"
+                                    onClick={() => {
+                                      setSelectedService(service);
+                                      setIsServiceDropdownOpen(false);
+                                    }}
+                                    className={cn(
+                                      'w-full px-4 py-3.5 sm:px-5 sm:py-4 flex items-center justify-between text-left transition-all cursor-pointer',
+                                      isSelected
+                                        ? 'bg-amber-500 text-black font-bold'
+                                        : 'hover:bg-white/5 text-white'
+                                    )}
+                                  >
+                                    <div className="flex items-center gap-3 min-w-0 pr-3">
+                                      {isSelected ? (
+                                        <Check className="w-4 h-4 shrink-0 text-black" />
+                                      ) : (
+                                        <div className="w-1.5 h-1.5 rounded-full bg-white/20 shrink-0" />
+                                      )}
+                                      <span className={cn(
+                                        'uppercase tracking-tight text-xs sm:text-sm truncate',
+                                        isSelected ? 'font-black text-black' : 'font-semibold text-white'
+                                      )}>
+                                        {service.name}
+                                      </span>
+                                    </div>
+
+                                    <span className={cn(
+                                      'text-xs sm:text-sm font-black whitespace-nowrap shrink-0',
+                                      isSelected
+                                        ? 'text-black/80'
+                                        : service.price.toLowerCase().includes('request')
+                                          ? 'text-white/40 font-medium'
+                                          : 'text-amber-400'
+                                    )}>
+                                      {formatPrice(service.price)}
+                                    </span>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
                   </div>
 
