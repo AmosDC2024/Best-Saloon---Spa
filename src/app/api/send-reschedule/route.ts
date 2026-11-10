@@ -1,19 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getResend, FROM_EMAIL } from '@/lib/email';
+import { getEmailTransporter, sendEmail, FROM_BOOKINGS } from '@/lib/email';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(req: NextRequest) {
   try {
     const { userName, userEmail, serviceName, originalDate, originalTime, suggestedDate, suggestedTime, message } = await req.json();
-    const resend = getResend();
+    const mailer = getEmailTransporter();
 
-    if (!resend) {
+    if (!mailer) {
       return NextResponse.json({ error: 'Email service not configured' }, { status: 503 });
     }
 
-    await resend.emails.send({
-      from: FROM_EMAIL,
+    const result = await sendEmail({
+      from: FROM_BOOKINGS,
       to: [userEmail],
       subject: `Rescheduling Request: ${serviceName} at Best Salon — Best Creative Hub`,
       html: `
@@ -34,6 +34,11 @@ export async function POST(req: NextRequest) {
         </div>
       `,
     });
+
+    if (!result.success) {
+      console.error('Reschedule send error:', result.error);
+      return NextResponse.json({ error: 'Failed to send reschedule email', details: result.error }, { status: 500 });
+    }
 
     return NextResponse.json({ message: 'Reschedule email sent' }, { status: 200 });
   } catch (err) {

@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getResend, FROM_EMAIL, ADMIN_EMAIL } from '@/lib/email';
+import { getEmailTransporter, sendEmail, FROM_CONTACT, ADMIN_EMAIL } from '@/lib/email';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(req: NextRequest) {
   try {
     const { name, email, subject, message } = await req.json();
-    const resend = getResend();
+    const mailer = getEmailTransporter();
 
-    if (!resend) {
+    if (!mailer) {
       return NextResponse.json({ error: 'Email service not configured' }, { status: 503 });
     }
 
@@ -16,10 +16,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing required contact details' }, { status: 400 });
     }
 
-    // 1. Send notification to Salon Staff / Owner
-    await resend.emails.send({
-      from: FROM_EMAIL,
+    // 1. Send notification to Hub Management / Admin with user's Reply-To
+    const adminSendResult = await sendEmail({
+      from: FROM_CONTACT,
       to: [ADMIN_EMAIL],
+      replyTo: email,
       subject: `New Contact Message: ${subject || 'No Subject'}`,
       html: `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
@@ -33,9 +34,13 @@ export async function POST(req: NextRequest) {
       `,
     });
 
+    if (!adminSendResult.success) {
+      console.error('Failed to notify admin via SMTP:', adminSendResult.error);
+    }
+
     // 2. Send Auto-reply to the User
-    await resend.emails.send({
-      from: FROM_EMAIL,
+    const userSendResult = await sendEmail({
+      from: FROM_CONTACT,
       to: [email],
       subject: `We received your message - Best Creative Hub`,
       html: `
@@ -49,6 +54,10 @@ export async function POST(req: NextRequest) {
         </div>
       `,
     });
+
+    if (!userSendResult.success) {
+      console.warn('Failed to send auto-reply to user via SMTP:', userSendResult.error);
+    }
 
     return NextResponse.json({ message: 'Emails sent successfully' }, { status: 200 });
   } catch (err) {

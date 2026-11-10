@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getResend, FROM_EMAIL } from '@/lib/email';
+import { getEmailTransporter, sendEmail, FROM_ADMIN, APP_URL } from '@/lib/email';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(req: NextRequest) {
   try {
     const { email } = await req.json();
-    const resend = getResend();
+    const mailer = getEmailTransporter();
 
-    if (!resend) {
+    if (!mailer) {
       return NextResponse.json({ error: 'Email service not configured' }, { status: 503 });
     }
 
@@ -16,10 +16,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Email is required' }, { status: 400 });
     }
 
-    const testLink = process.env.APP_URL || 'https://bestcreativehub.com';
+    const testLink = APP_URL;
 
-    await resend.emails.send({
-      from: FROM_EMAIL,
+    const result = await sendEmail({
+      from: FROM_ADMIN,
       to: [email],
       subject: `Your Testing Link - Best Creative Hub`,
       html: `
@@ -36,6 +36,11 @@ export async function POST(req: NextRequest) {
         </div>
       `,
     });
+
+    if (!result.success) {
+      console.error('Send test link error:', result.error);
+      return NextResponse.json({ error: 'Failed to send test link email', details: result.error }, { status: 500 });
+    }
 
     return NextResponse.json({ message: 'Testing link sent successfully' }, { status: 200 });
   } catch (err) {

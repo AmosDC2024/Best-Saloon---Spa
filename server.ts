@@ -1,5 +1,5 @@
 import express from 'express';
-import { Resend } from 'resend';
+import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
 import path from 'path';
 import fs from 'fs';
@@ -10,20 +10,24 @@ dotenv.config();
 const currentFilename = typeof __filename !== 'undefined' ? __filename : fileURLToPath(import.meta.url);
 const currentDirname = typeof __dirname !== 'undefined' ? __dirname : path.dirname(currentFilename);
 
-let resendClient: Resend | null = null;
-const getResend = () => {
-  if (!resendClient) {
-    const key = process.env.RESEND_API_KEY;
-    if (!key) {
-      console.warn('RESEND_API_KEY is missing. Email features will be disabled.');
-      return null;
-    }
-    resendClient = new Resend(key);
-  }
-  return resendClient;
-};
+const FROM_EMAIL = process.env.SMTP_FROM_INFO || 'Best Creative Hub <info@bestcreativehub.com>';
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@bestcreativehub.com';
 
-const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || 'best salon services & creative hub <onboarding@resend.dev>';
+const getTransporter = () => {
+  const host = process.env.SMTP_HOST;
+  const user = process.env.SMTP_USER;
+  const pass = process.env.SMTP_PASSWORD;
+  if (!host || !user || !pass) {
+    console.warn('SMTP credentials are missing. Email features will be disabled.');
+    return null;
+  }
+  return nodemailer.createTransport({
+    host,
+    port: Number(process.env.SMTP_PORT || 465),
+    secure: process.env.SMTP_SECURE !== 'false',
+    auth: { user, pass },
+  });
+};
 
 async function startServer() {
   const app = express();
@@ -58,17 +62,17 @@ async function startServer() {
   // 3. API Routes
   // API Route for sending booking notification to Admin ONLY (initial booking)
   app.post('/api/notify-admin-booking', async (req, res) => {
-    const { userName, userEmail, serviceName, date, time, category } = req.body;
-    const resend = getResend();
+    const { userName, userEmail, serviceName, date, time } = req.body;
+    const transporter = getTransporter();
 
-    if (!resend) {
+    if (!transporter) {
       return res.status(503).json({ error: 'Email service not configured' });
     }
 
     try {
-      await resend.emails.send({
+      await transporter.sendMail({
         from: FROM_EMAIL,
-        to: [process.env.ADMIN_EMAIL || 'osiamijnr@gmail.com'],
+        to: ADMIN_EMAIL,
         subject: `New Booking Request: ${serviceName} - ${userName}`,
         html: `
           <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
@@ -94,9 +98,9 @@ async function startServer() {
   // API Route for sending the testing link to the admin
   app.post('/api/send-test-link', async (req, res) => {
     const { email } = req.body;
-    const resend = getResend();
+    const transporter = getTransporter();
 
-    if (!resend) {
+    if (!transporter) {
       return res.status(503).json({ error: 'Email service not configured' });
     }
 
@@ -107,10 +111,10 @@ async function startServer() {
     const testLink = 'https://ais-pre-htn43e6zff3d6tqo54gu7b-182291592896.europe-west2.run.app';
 
     try {
-      await resend.emails.send({
+      await transporter.sendMail({
         from: FROM_EMAIL,
-        to: [email],
-        subject: `Your Testing Link - best salon services & creative hub`,
+        to: email,
+        subject: `Your Testing Link - Best Creative Hub`,
         html: `
           <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
             <h1 style="color: #f59e0b;">Your Testing Link</h1>
@@ -121,7 +125,7 @@ async function startServer() {
             </div>
             <p style="color: #6b7280; font-size: 14px;">URL: <a href="${testLink}" style="color: #f59e0b;">${testLink}</a></p>
             <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;" />
-            <p style="text-align: center; color: #9ca3af; font-size: 12px;">best salon services & creative hub &bull; Admin Tools</p>
+            <p style="text-align: center; color: #9ca3af; font-size: 12px;">Best Creative Hub &bull; Admin Tools</p>
           </div>
         `,
       });
@@ -137,12 +141,12 @@ async function startServer() {
   app.post('/api/send-confirmation', async (req, res) => {
     const { userName, userEmail, serviceName, date, time, category } = req.body;
     console.log('Confirmation request received for:', userEmail);
-    
-    const resend = getResend();
 
-    if (!resend) {
-      console.error('Resend client not initialized');
-      return res.status(503).json({ error: 'Email service not configured. Please check RESEND_API_KEY.' });
+    const transporter = getTransporter();
+
+    if (!transporter) {
+      console.error('SMTP transporter not initialized');
+      return res.status(503).json({ error: 'Email service not configured. Please check SMTP credentials.' });
     }
 
     if (!userEmail || userEmail === 'No Email') {
@@ -157,13 +161,13 @@ async function startServer() {
 
     try {
       console.log('Sending confirmation email to:', userEmail);
-      const result = await resend.emails.send({
+      await transporter.sendMail({
         from: FROM_EMAIL,
-        to: [userEmail],
-        subject: `Booking Confirmed: ${serviceName} at best salon services & creative hub`,
+        to: userEmail,
+        subject: `Booking Confirmed: ${serviceName} at Best Creative Hub`,
         html: `
           <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
-            <h1 style="color: #f59e0b; text-transform: uppercase; letter-spacing: -1px;">best salon services <span style="color: #000;">& creative hub</span></h1>
+            <h1 style="color: #f59e0b; text-transform: uppercase; letter-spacing: -1px;">Best Creative Hub</h1>
             <p style="font-size: 18px;">Hello <strong>${userName || 'Valued Client'}</strong>,</p>
             <p>Your appointment has been <strong>CONFIRMED</strong>! We look forward to seeing you.</p>
             
@@ -177,38 +181,33 @@ async function startServer() {
             
             <p style="color: #6b7280; font-size: 14px;">If you need to reschedule or cancel, please contact us at least 24 hours in advance.</p>
             <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;" />
-            <p style="text-align: center; color: #9ca3af; font-size: 12px;">best salon services & creative hub &bull; Block 1, Plot 7, Ogundola layout &bull; Akure</p>
+            <p style="text-align: center; color: #9ca3af; font-size: 12px;">Best Creative Hub &bull; Block 1, Plot 7, Ogundola layout &bull; Akure</p>
           </div>
         `,
       });
 
-      if (result.error) {
-        console.error('Resend API returned error:', result.error);
-        return res.status(500).json({ error: 'Resend API error', details: result.error });
-      }
-
-      console.log('Confirmation email sent successfully:', result);
-      res.status(200).json({ message: 'Confirmation email sent', result });
+      console.log('Confirmation email sent successfully');
+      res.status(200).json({ message: 'Confirmation email sent' });
     } catch (err) {
-      console.error('Resend confirmation error:', err);
-      res.status(500).json({ error: 'Failed to send email via Resend', details: err instanceof Error ? err.message : String(err) });
+      console.error('Confirmation email error:', err);
+      res.status(500).json({ error: 'Failed to send confirmation email', details: err instanceof Error ? err.message : String(err) });
     }
   });
 
   // API Route for sending rescheduling emails (triggered by Admin)
   app.post('/api/send-reschedule', async (req, res) => {
     const { userName, userEmail, serviceName, originalDate, originalTime, suggestedDate, suggestedTime, message } = req.body;
-    const resend = getResend();
+    const transporter = getTransporter();
 
-    if (!resend) {
+    if (!transporter) {
       return res.status(503).json({ error: 'Email service not configured' });
     }
 
     try {
-      await resend.emails.send({
+      await transporter.sendMail({
         from: FROM_EMAIL,
-        to: [userEmail],
-        subject: `Rescheduling Request: ${serviceName} at best salon services & creative hub`,
+        to: userEmail,
+        subject: `Rescheduling Request: ${serviceName} at Best Creative Hub`,
         html: `
           <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
             <h1 style="color: #f59e0b;">Rescheduling Request</h1>
@@ -223,7 +222,7 @@ async function startServer() {
             
             <p>Please contact us at +234 806 805 9823 or reply to this email to confirm a new time.</p>
             <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;" />
-            <p style="text-align: center; color: #9ca3af; font-size: 12px;">best salon services & creative hub &bull; Block 1, Plot 7, Ogundola layout &bull; Akure</p>
+            <p style="text-align: center; color: #9ca3af; font-size: 12px;">Best Creative Hub &bull; Block 1, Plot 7, Ogundola layout &bull; Akure</p>
           </div>
         `,
       });
@@ -237,9 +236,9 @@ async function startServer() {
   // API Route for sending contact form emails
   app.post('/api/send-contact-email', async (req, res) => {
     const { name, email, subject, message } = req.body;
-    const resend = getResend();
+    const transporter = getTransporter();
 
-    if (!resend) {
+    if (!transporter) {
       return res.status(503).json({ error: 'Email service not configured' });
     }
 
@@ -249,9 +248,9 @@ async function startServer() {
 
     try {
       // 1. Send notification to Salon Staff
-      await resend.emails.send({
+      await transporter.sendMail({
         from: FROM_EMAIL,
-        to: [process.env.ADMIN_EMAIL || 'osiamijnr@gmail.com'], // Notify the owner
+        to: ADMIN_EMAIL,
         subject: `New Contact Message: ${subject || 'No Subject'}`,
         html: `
           <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
@@ -266,18 +265,18 @@ async function startServer() {
       });
 
       // 2. Send Auto-reply to the User
-      await resend.emails.send({
+      await transporter.sendMail({
         from: FROM_EMAIL,
-        to: [email],
-        subject: `We received your message - best salon services & creative hub`,
+        to: email,
+        subject: `We received your message - Best Creative Hub`,
         html: `
           <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
             <h1 style="color: #f59e0b;">Hello ${name},</h1>
-            <p>Thank you for reaching out to best salon services & creative hub. We have received your message regarding "<strong>${subject || 'General Inquiry'}</strong>".</p>
+            <p>Thank you for reaching out to Best Creative Hub. We have received your message regarding "<strong>${subject || 'General Inquiry'}</strong>".</p>
             <p>Our team will review your message and get back to you as soon as possible (usually within 24 hours).</p>
             <p>If this is an emergency or you'd like to book immediately, please call us at +234 806 805 9823.</p>
             <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;" />
-            <p style="text-align: center; color: #9ca3af; font-size: 12px;">best salon services & creative hub &bull; Block 1, Plot 7, Ogundola layout &bull; Akure</p>
+            <p style="text-align: center; color: #9ca3af; font-size: 12px;">Best Creative Hub &bull; Block 1, Plot 7, Ogundola layout &bull; Akure</p>
           </div>
         `,
       });

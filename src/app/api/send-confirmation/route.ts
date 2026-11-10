@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getResend, FROM_EMAIL } from '@/lib/email';
+import { getEmailTransporter, sendEmail, FROM_SALON } from '@/lib/email';
 
 export const dynamic = 'force-dynamic';
 
@@ -8,12 +8,12 @@ export async function POST(req: NextRequest) {
     const { userName, userEmail, serviceName, date, time, category } = await req.json();
     console.log('Confirmation request received for:', userEmail);
 
-    const resend = getResend();
+    const mailer = getEmailTransporter();
 
-    if (!resend) {
-      console.error('Resend client not initialized');
+    if (!mailer) {
+      console.error('Email transporter not initialized');
       return NextResponse.json(
-        { error: 'Email service not configured. Please check RESEND_API_KEY.' },
+        { error: 'Email service not configured. Please check SMTP_PASSWORD.' },
         { status: 503 }
       );
     }
@@ -35,8 +35,8 @@ export async function POST(req: NextRequest) {
     }
 
     console.log('Sending confirmation email to:', userEmail);
-    const result = await resend.emails.send({
-      from: FROM_EMAIL,
+    const result = await sendEmail({
+      from: FROM_SALON,
       to: [userEmail],
       subject: `Booking Confirmed: ${serviceName} at Best Salon — Best Creative Hub`,
       html: `
@@ -60,10 +60,10 @@ export async function POST(req: NextRequest) {
       `,
     });
 
-    if (result.error) {
-      console.error('Resend API returned error:', result.error);
+    if (!result.success) {
+      console.error('SMTP delivery error:', result.error);
       return NextResponse.json(
-        { error: 'Resend API error', details: result.error },
+        { error: 'Failed to send confirmation email', details: result.error },
         { status: 500 }
       );
     }
@@ -71,9 +71,9 @@ export async function POST(req: NextRequest) {
     console.log('Confirmation email sent successfully:', result);
     return NextResponse.json({ message: 'Confirmation email sent', result }, { status: 200 });
   } catch (err) {
-    console.error('Resend confirmation error:', err);
+    console.error('Confirmation email error:', err);
     return NextResponse.json(
-      { error: 'Failed to send email via Resend', details: err instanceof Error ? err.message : String(err) },
+      { error: 'Failed to send email via SMTP', details: err instanceof Error ? err.message : String(err) },
       { status: 500 }
     );
   }

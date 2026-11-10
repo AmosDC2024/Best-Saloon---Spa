@@ -1,20 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getResend, FROM_EMAIL, ADMIN_EMAIL, APP_URL } from '@/lib/email';
+import { getEmailTransporter, sendEmail, FROM_BOOKINGS, ADMIN_EMAIL, APP_URL } from '@/lib/email';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(req: NextRequest) {
   try {
     const { userName, userEmail, serviceName, date, time, category } = await req.json();
-    const resend = getResend();
+    const mailer = getEmailTransporter();
 
-    if (!resend) {
+    if (!mailer) {
       return NextResponse.json({ error: 'Email service not configured' }, { status: 503 });
     }
 
-    await resend.emails.send({
-      from: FROM_EMAIL,
+    await sendEmail({
+      from: FROM_BOOKINGS,
       to: [ADMIN_EMAIL],
+      replyTo: userEmail && userEmail !== 'No Email' ? userEmail : undefined,
       subject: `New Booking Request: ${serviceName} - ${userName}`,
       html: `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
