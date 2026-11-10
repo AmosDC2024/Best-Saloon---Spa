@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { motion } from 'motion/react';
 import {
   Scissors,
@@ -385,6 +386,75 @@ export default function HomePage() {
                 </div>
               );
             })}
+          </div>
+        </div>
+      </section>
+
+      {/* 3.5 MEET OUR FOUNDER SPOTLIGHT */}
+      <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <div className="rounded-3xl bg-gradient-to-br from-[#1F2937] via-[#112240] to-[#0A192F] border-2 border-amber-500/30 p-8 sm:p-12 lg:p-14 shadow-2xl">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+            {/* Image */}
+            <div className="lg:col-span-4 flex justify-center order-2 lg:order-1">
+              <div className="relative w-full max-w-[260px] sm:max-w-[280px] rounded-2xl overflow-hidden border border-amber-500/40 shadow-2xl bg-[#0A192F] group">
+                <div className="relative aspect-[9/15] w-full">
+                  <Image
+                    src="/images/founder.jpg"
+                    alt="Williams Olorunfemi Bola — Founder & CEO of Best Creative Hub"
+                    fill
+                    sizes="(max-width: 640px) 100vw, 280px"
+                    className="object-cover object-top transition-transform duration-700 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#0A192F] via-[#0A192F]/10 to-transparent pointer-events-none" />
+                </div>
+                <div className="absolute bottom-2.5 left-2.5 right-2.5 p-2.5 rounded-xl bg-[#0A192F]/90 backdrop-blur-md border border-white/15 text-center">
+                  <p className="text-white font-bold text-xs uppercase tracking-tight">Williams Olorunfemi Bola</p>
+                  <p className="text-[10px] text-amber-400 font-semibold uppercase tracking-wider">Founder &amp; CEO</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Intro Content */}
+            <div className="lg:col-span-8 space-y-4 order-1 lg:order-2">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold uppercase tracking-wider">
+                <Sparkles className="w-3.5 h-3.5" />
+                Leadership &bull; 25+ Years Experience
+              </div>
+
+              <h2 className="text-2xl sm:text-4xl font-black uppercase tracking-tight text-white leading-tight">
+                From a Borrowed Stool to Akure&apos;s Creative Landmark
+              </h2>
+
+              <p className="text-xs sm:text-sm text-amber-400 font-bold uppercase tracking-wider">
+                Williams Olorunfemi Bola &mdash; Founder &amp; Chief Executive Officer
+              </p>
+
+              <blockquote className="border-l-2 border-amber-500 pl-4 py-1 text-sm sm:text-base text-white/90 font-medium italic">
+                &ldquo;Excellence is not an accident; it is the deliberate reward of discipline, resilience, and an unwavering commitment to mastering one&apos;s craft.&rdquo;
+              </blockquote>
+
+              <p className="text-[#F8F9FA]/75 text-sm sm:text-base leading-relaxed">
+                Starting with just a clipper, an apron, and a borrowed stool, Williams built Best Creative Hub into a multi-disciplinary
+                powerhouse uniting luxury salon grooming, 3D architectural signage fabrication, and fine art studio canvases under one roof.
+                Today, his team of approximately 20 professionals has trained more than 100 apprentices and elevated vocational standards across Ondo State.
+              </p>
+
+              <div className="pt-2 flex flex-wrap items-center gap-3.5">
+                <Link
+                  href="/about/founder"
+                  className="px-6 py-3.5 bg-amber-500 hover:bg-amber-400 text-black font-black uppercase tracking-wider text-xs rounded-xl shadow-lg shadow-amber-500/20 transition-all flex items-center gap-2 group cursor-pointer"
+                >
+                  <span>Meet Our Founder</span>
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </Link>
+                <Link
+                  href="/about"
+                  className="px-6 py-3.5 bg-[#0A192F] hover:bg-[#1F2937] border border-white/15 text-white font-bold uppercase tracking-wider text-xs rounded-xl transition-all"
+                >
+                  Explore Our Story
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
       </section>

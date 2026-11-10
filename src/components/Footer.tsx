@@ -103,6 +103,7 @@ export default function Footer() {
             <ul className="space-y-3">
               {[
                 { name: 'About Hub', href: '/about' },
+                { name: 'Meet Our Founder', href: '/about/founder' },
                 { name: 'Portfolio & Works', href: '/portfolio' },
                 { name: 'Training Academy', href: '/training' },
                 { name: 'Contact & Location', href: '/contact' },
