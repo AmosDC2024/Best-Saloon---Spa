@@ -236,9 +236,20 @@ export default function HomePage() {
                 {/* Bottom Card Summary */}
                 <div className="absolute bottom-4 left-4 right-4 p-4 rounded-2xl bg-[#0A192F]/90 backdrop-blur-md border border-white/15">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="font-arcade text-amber-400 text-xs uppercase tracking-wide">
-                      BEST CREATIVE HUB
-                    </span>
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-6 h-6 rounded-md overflow-hidden bg-white shrink-0 flex items-center justify-center p-0.5 shadow-sm">
+                        <Image
+                          src="/images/logo.jpg"
+                          alt="Best Creative Hub Logo"
+                          width={24}
+                          height={24}
+                          className="w-full h-full object-contain"
+                        />
+                      </div>
+                      <span className="font-arcade text-amber-400 text-xs uppercase tracking-wide">
+                        BEST CREATIVE HUB
+                      </span>
+                    </div>
                     <span className="text-[10px] uppercase tracking-wider text-white/50 font-bold">
                       Ogundola Layout, Akure
                     </span>

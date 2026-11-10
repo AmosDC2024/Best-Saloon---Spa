@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'motion/react';
 import {
@@ -145,12 +146,19 @@ export default function Navbar(props: NavbarProps = {}) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-14">
           {/* Logo / Brand */}
-          <Link href="/" className="flex items-center gap-3 group">
-            <div className="relative">
-              <div className="w-10 h-10 bg-amber-500 rounded-xl flex items-center justify-center font-black text-black text-lg shadow-lg group-hover:scale-105 transition-transform">
-                B
+          <Link href="/" className="flex items-center gap-3 group shrink-0">
+            <div className="relative shrink-0">
+              <div className="w-10 h-10 rounded-xl overflow-hidden bg-white shadow-md flex items-center justify-center p-0.5 group-hover:scale-105 transition-transform">
+                <Image
+                  src="/images/logo.jpg"
+                  alt="Best Creative Hub Logo"
+                  width={40}
+                  height={40}
+                  priority
+                  className="w-full h-full object-contain"
+                />
               </div>
-              <Sparkles className="w-3.5 h-3.5 text-amber-400 absolute -top-1 -right-1 animate-pulse" />
+              <Sparkles className="w-3 h-3 text-amber-400 absolute -top-1 -right-1 animate-pulse pointer-events-none" />
             </div>
             <div className="flex flex-col">
               <span className="font-arcade text-sm sm:text-base tracking-wider text-amber-500 uppercase leading-none group-hover:text-amber-400 transition-colors">
@@ -425,6 +433,27 @@ export default function Navbar(props: NavbarProps = {}) {
             exit={{ opacity: 0, height: 0 }}
             className="lg:hidden bg-[#0A192F] border-b border-white/10 px-6 py-6 overflow-hidden max-h-[85vh] overflow-y-auto"
           >
+            {/* Mobile Header Branding */}
+            <div className="flex items-center gap-3 pb-4 mb-4 border-b border-white/10">
+              <div className="w-10 h-10 rounded-xl overflow-hidden bg-white shrink-0 shadow-md flex items-center justify-center p-0.5">
+                <Image
+                  src="/images/logo.jpg"
+                  alt="Best Creative Hub Logo"
+                  width={40}
+                  height={40}
+                  className="w-full h-full object-contain"
+                />
+              </div>
+              <div className="flex flex-col">
+                <span className="font-arcade text-xs tracking-wider text-amber-500 uppercase leading-none">
+                  BEST CREATIVE HUB
+                </span>
+                <span className="text-[9px] tracking-widest uppercase text-white/50 font-semibold mt-0.5">
+                  Salon &bull; Signage &bull; Art
+                </span>
+              </div>
+            </div>
+
             <div className="space-y-2">
               <Link
                 href="/"

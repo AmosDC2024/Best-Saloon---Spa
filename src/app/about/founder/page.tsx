@@ -269,15 +269,26 @@ export default function FounderPage() {
               </div>
 
               {/* Overlay Badge */}
-              <div className="absolute bottom-4 left-4 right-4 p-4 rounded-2xl bg-[#0A192F]/90 backdrop-blur-md border border-white/15">
+              <div className="absolute bottom-4 left-4 right-4 p-3.5 rounded-2xl bg-[#0A192F]/90 backdrop-blur-md border border-white/15">
                 <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-white font-black text-sm uppercase tracking-tight">
-                      Williams O. Bola
-                    </p>
-                    <p className="text-[11px] text-amber-400 font-semibold uppercase tracking-wider">
-                      Founder &amp; CEO
-                    </p>
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg overflow-hidden bg-white shrink-0 shadow-sm flex items-center justify-center p-0.5">
+                      <Image
+                        src="/images/logo.jpg"
+                        alt="Best Creative Hub Logo"
+                        width={32}
+                        height={32}
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                    <div>
+                      <p className="text-white font-black text-sm uppercase tracking-tight">
+                        Williams O. Bola
+                      </p>
+                      <p className="text-[11px] text-amber-400 font-semibold uppercase tracking-wider">
+                        Founder &amp; CEO
+                      </p>
+                    </div>
                   </div>
                   <div className="px-2.5 py-1 rounded-lg bg-amber-500/20 border border-amber-500/40 text-[10px] font-bold text-amber-300 uppercase tracking-widest">
                     25+ Yrs
@@ -679,7 +690,16 @@ export default function FounderPage() {
             dedication, the brand naturally rises to endure.&rdquo;
           </blockquote>
 
-          <div className="inline-block border-t border-amber-500/40 pt-4">
+          <div className="inline-flex flex-col items-center border-t border-amber-500/40 pt-5">
+            <div className="w-10 h-10 rounded-xl overflow-hidden bg-white shadow-md mb-3 flex items-center justify-center p-0.5">
+              <Image
+                src="/images/logo.jpg"
+                alt="Best Creative Hub Logo"
+                width={40}
+                height={40}
+                className="w-full h-full object-contain"
+              />
+            </div>
             <p className="font-arcade text-amber-400 text-sm tracking-widest uppercase">
               WILLIAMS OLORUNFEMI BOLA
             </p>

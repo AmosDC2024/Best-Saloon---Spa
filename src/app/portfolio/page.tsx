@@ -14,6 +14,7 @@ import {
   X,
 } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useHub } from '../../context/HubContext';
 
 type CategoryFilter = 'all' | 'barbing' | 'signage' | 'art';
@@ -288,13 +289,24 @@ export default function PortfolioPage() {
                   <span>Curated Works</span>
                 </div>
 
-                <div className="absolute bottom-4 left-4 right-4 p-4 rounded-2xl bg-[#0A192F]/90 backdrop-blur-md border border-white/15">
-                  <p className="font-arcade text-amber-400 text-xs uppercase tracking-wide">
-                    BEST CREATIVE HUB PORTFOLIO
-                  </p>
-                  <p className="text-[10px] uppercase tracking-wider text-white/50 font-semibold mt-0.5">
-                    Grooming &bull; 3D Fabrication &bull; Fine Art
-                  </p>
+                <div className="absolute bottom-4 left-4 right-4 p-4 rounded-2xl bg-[#0A192F]/90 backdrop-blur-md border border-white/15 flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg overflow-hidden bg-white shrink-0 shadow-sm flex items-center justify-center p-0.5">
+                    <Image
+                      src="/images/logo.jpg"
+                      alt="Best Creative Hub Logo"
+                      width={32}
+                      height={32}
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                  <div>
+                    <p className="font-arcade text-amber-400 text-xs uppercase tracking-wide leading-none">
+                      BEST CREATIVE HUB PORTFOLIO
+                    </p>
+                    <p className="text-[10px] uppercase tracking-wider text-white/50 font-semibold mt-1">
+                      Grooming &bull; 3D Fabrication &bull; Fine Art
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>

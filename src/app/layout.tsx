@@ -6,6 +6,11 @@ export const metadata: Metadata = {
   title: 'Best Creative Hub — Akure | Salon, Signs & Craft, Fine Art',
   description:
     'Akure’s premier multi-disciplinary creative ecosystem uniting luxury grooming & spa wellness, high-impact 3D signage & craft fabrication, and bespoke fine art commissions.',
+  icons: {
+    icon: '/images/logo.jpg',
+    shortcut: '/images/logo.jpg',
+    apple: '/images/logo.jpg',
+  },
   keywords: [
     'Best Creative Hub',
     'Best Salon Akure',

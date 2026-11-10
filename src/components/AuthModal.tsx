@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Mail, Lock, User, Phone, ArrowRight, AlertCircle, Scissors, Sparkles, Eye, EyeOff } from 'lucide-react';
 import { auth, db } from '../firebase';
@@ -236,7 +237,16 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login', admi
 
         <div className="flex-1 overflow-y-auto no-scrollbar relative z-10">
           <div className="p-6 md:p-10 min-h-full flex flex-col justify-center">
-            <div className="mb-8 text-center">
+            <div className="mb-8 text-center flex flex-col items-center">
+              <div className="w-12 h-12 rounded-2xl overflow-hidden bg-white shadow-lg mb-3 flex items-center justify-center p-1">
+                <Image
+                  src="/images/logo.jpg"
+                  alt="Best Creative Hub Logo"
+                  width={48}
+                  height={48}
+                  className="w-full h-full object-contain"
+                />
+              </div>
               <h2 className="text-3xl md:text-2xl font-black text-white uppercase tracking-tighter mb-2">
                 {adminOnly 
                   ? 'Admin Login' 

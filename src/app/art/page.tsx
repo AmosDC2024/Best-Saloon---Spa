@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { motion } from 'motion/react';
 import {
   Palette,
@@ -244,13 +245,24 @@ export default function ArtPage() {
 
                 <div className="absolute bottom-4 left-4 right-4 p-4 rounded-2xl bg-[#0A192F]/90 backdrop-blur-md border border-white/15">
                   <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-arcade text-emerald-400 text-xs uppercase tracking-wide">
-                        BEST ART
-                      </p>
-                      <p className="text-[10px] uppercase tracking-wider text-white/50 font-semibold mt-0.5">
-                        Belgian Linen &bull; 24K Gold Leaf &bull; Conservation
-                      </p>
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg overflow-hidden bg-white shrink-0 shadow-sm flex items-center justify-center p-0.5">
+                        <Image
+                          src="/images/logo.jpg"
+                          alt="Best Creative Hub Logo"
+                          width={32}
+                          height={32}
+                          className="w-full h-full object-contain"
+                        />
+                      </div>
+                      <div>
+                        <p className="font-arcade text-emerald-400 text-xs uppercase tracking-wide">
+                          BEST ART
+                        </p>
+                        <p className="text-[10px] uppercase tracking-wider text-white/50 font-semibold mt-0.5">
+                          Belgian Linen &bull; 24K Gold Leaf &bull; Conservation
+                        </p>
+                      </div>
                     </div>
                     <span className="px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-300 font-bold text-[10px] uppercase tracking-wider">
                       Museum Grade

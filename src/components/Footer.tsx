@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import {
   Scissors,
   Layers,
@@ -26,8 +27,14 @@ export default function Footer() {
           {/* Brand Col */}
           <div className="lg:col-span-2">
             <Link href="/" className="flex items-center gap-3 mb-6 group inline-flex">
-              <div className="w-10 h-10 bg-amber-500 rounded-xl flex items-center justify-center font-black text-black text-lg shadow-lg">
-                B
+              <div className="w-11 h-11 rounded-xl overflow-hidden bg-white shrink-0 shadow-lg flex items-center justify-center p-0.5 group-hover:scale-105 transition-transform">
+                <Image
+                  src="/images/logo.jpg"
+                  alt="Best Creative Hub Logo"
+                  width={44}
+                  height={44}
+                  className="w-full h-full object-contain"
+                />
               </div>
               <div>
                 <span className="font-arcade text-lg tracking-wider text-amber-500 uppercase leading-none block">

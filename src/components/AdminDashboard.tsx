@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { motion } from 'motion/react';
 import { collection, query, orderBy, onSnapshot, updateDoc, doc, deleteDoc } from 'firebase/firestore';
 import { db, auth } from '../firebase';
@@ -200,8 +201,17 @@ export default function AdminDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0A192F] flex items-center justify-center">
-        <div className="text-amber-500 animate-pulse font-black uppercase tracking-widest text-sm sm:text-base">
+      <div className="min-h-screen bg-[#0A192F] flex flex-col items-center justify-center gap-4">
+        <div className="w-14 h-14 rounded-2xl overflow-hidden bg-white shadow-2xl p-1 flex items-center justify-center animate-pulse">
+          <Image
+            src="/images/logo.jpg"
+            alt="Best Creative Hub Logo"
+            width={56}
+            height={56}
+            className="w-full h-full object-contain"
+          />
+        </div>
+        <div className="text-amber-500 font-black uppercase tracking-widest text-xs sm:text-sm">
           Loading Dashboard...
         </div>
       </div>
@@ -214,9 +224,20 @@ export default function AdminDashboard() {
         {/* Admin Hero Header */}
         <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-8 border-b border-white/10 mb-8">
           <div className="min-w-0 max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[10px] font-bold uppercase tracking-widest mb-3">
-              <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
-              <span>Operations Console</span>
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-xl overflow-hidden bg-white shrink-0 shadow-md flex items-center justify-center p-0.5">
+                <Image
+                  src="/images/logo.jpg"
+                  alt="Best Creative Hub Logo"
+                  width={40}
+                  height={40}
+                  className="w-full h-full object-contain"
+                />
+              </div>
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[10px] font-bold uppercase tracking-widest">
+                <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
+                <span>Operations Console</span>
+              </div>
             </div>
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black uppercase tracking-tight text-white leading-tight">
               Admin <span className="text-amber-500">Control</span>

@@ -104,13 +104,24 @@ export default function AboutPage() {
                   <span>Akure Headquarters</span>
                 </div>
 
-                <div className="absolute bottom-4 left-4 right-4 p-4 rounded-2xl bg-[#0A192F]/90 backdrop-blur-md border border-white/15">
-                  <p className="font-arcade text-amber-400 text-xs uppercase tracking-wide">
-                    BEST CREATIVE HUB
-                  </p>
-                  <p className="text-[10px] uppercase tracking-wider text-white/50 font-semibold mt-0.5">
-                    Block 1, Plot 7, Ogundola layout &bull; Akure, Nigeria
-                  </p>
+                <div className="absolute bottom-4 left-4 right-4 p-3.5 rounded-2xl bg-[#0A192F]/90 backdrop-blur-md border border-white/15 flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl overflow-hidden bg-white shrink-0 shadow-md flex items-center justify-center p-0.5">
+                    <Image
+                      src="/images/logo.jpg"
+                      alt="Best Creative Hub Logo"
+                      width={36}
+                      height={36}
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                  <div>
+                    <p className="font-arcade text-amber-400 text-xs uppercase tracking-wide leading-none">
+                      BEST CREATIVE HUB
+                    </p>
+                    <p className="text-[10px] uppercase tracking-wider text-white/50 font-semibold mt-1">
+                      Block 1, Plot 7, Ogundola layout &bull; Akure, Nigeria
+                    </p>
+                  </div>
                 </div>
               </div>
             </motion.div>
