@@ -20,7 +20,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import { db } from './firebase';
 import { Toaster } from 'sonner';
 
-const ADMIN_EMAIL = 'osiamijnr@gmail.com';
+const ADMIN_EMAIL = 'admin@bestcreativehub.com';
 
 function Modal({ isOpen, onClose, children }: { isOpen: boolean; onClose: () => void; children: React.ReactNode }) {
   useEffect(() => {
@@ -83,7 +83,7 @@ function App() {
         // Check if user is admin
         const userDoc = await getDoc(doc(db, 'users', user.uid));
         const adminDoc = await getDoc(doc(db, 'authorized_admins', user.email?.toLowerCase() || ''));
-        
+
         const isHardcodedAdmin = user.email === ADMIN_EMAIL;
         const isRoleAdmin = userDoc.exists() && userDoc.data().role === 'admin';
         const isAuthorizedAdmin = adminDoc.exists();
@@ -108,8 +108,8 @@ function App() {
   return (
     <div className="min-h-screen bg-black font-sans selection:bg-amber-500 selection:text-black">
       <Toaster position="top-center" richColors />
-      <Navbar 
-        onOpenGallery={() => setIsGalleryOpen(true)} 
+      <Navbar
+        onOpenGallery={() => setIsGalleryOpen(true)}
         onOpenBooking={() => setIsBookingOpen(true)}
         onOpenContact={() => setIsContactOpen(true)}
         onOpenHistory={() => setIsHistoryOpen(true)}
@@ -125,7 +125,7 @@ function App() {
           setIsAuthModalOpen(true);
         }}
       />
-      
+
       <main>
         {isAdminView && isAdmin ? (
           <div className="pt-20">
@@ -133,11 +133,11 @@ function App() {
           </div>
         ) : (
           <>
-            <Hero 
-              onOpenBooking={() => setIsBookingOpen(true)} 
+            <Hero
+              onOpenBooking={() => setIsBookingOpen(true)}
               onOpenContact={() => setIsContactOpen(true)}
             />
-            
+
             {/* Features Section */}
             <section className="section-padding bg-zinc-950 border-y border-white/5">
               <div className="container-max">
@@ -161,7 +161,7 @@ function App() {
             </section>
 
             <Services onOpenBooking={() => setIsBookingOpen(true)} />
-            
+
             {/* About Section */}
             <section id="about" className="section-padding bg-zinc-950 overflow-hidden">
               <div className="container-max">
@@ -185,7 +185,7 @@ function App() {
                       <p className="text-black font-bold uppercase tracking-widest text-[10px]">Years of Excellence</p>
                     </div>
                   </motion.div>
-                  
+
                   <div>
                     <motion.h2
                       initial={{ opacity: 0, y: 20 }}
@@ -203,7 +203,7 @@ function App() {
                         'Master barbers and spa therapists',
                         'Premium grooming and wellness products',
                         'Complimentary drinks and luxury atmosphere',
-                        'The Best Creative Hub experience in the city'.split(/(Best Creative Hub)/gi).map((part, i) => 
+                        'The Best Creative Hub experience in the city'.split(/(Best Creative Hub)/gi).map((part, i) =>
                           part.toLowerCase() === 'best creative hub' ? (
                             <span key={i} className="font-arcade text-amber-500 uppercase">
                               {part}
@@ -252,9 +252,9 @@ function App() {
         <AppointmentHistory />
       </Modal>
 
-      <AuthModal 
-        isOpen={isAuthModalOpen} 
-        onClose={() => setIsAuthModalOpen(false)} 
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
         initialMode={authMode}
         adminOnly={isAdminAuth}
       />

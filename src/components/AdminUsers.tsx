@@ -90,7 +90,7 @@ export default function AdminUsers() {
 
   const handleRemoveAdmin = async (email: string) => {
     const currentUserEmail = auth.currentUser?.email?.toLowerCase();
-    const primaryAdmin = 'osiamijnr@gmail.com';
+    const primaryAdmin = 'admin@bestcreativehub.com';
     
     // Identify super admins (first two added)
     const superAdmins = authorizedAdmins
@@ -233,7 +233,7 @@ export default function AdminUsers() {
                   <p className="text-[10px] text-white/40 uppercase tracking-widest">Added by: {admin.addedBy}</p>
                 </div>
               </div>
-              {admin.email !== 'osiamijnr@gmail.com' && 
+              {admin.email !== 'admin@bestcreativehub.com' && 
                authorizedAdmins.slice(0, 2).some(sa => sa.email.toLowerCase() === auth.currentUser?.email?.toLowerCase()) && (
                 <button
                   onClick={() => handleRemoveAdmin(admin.email)}

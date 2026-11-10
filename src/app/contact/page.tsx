@@ -198,7 +198,7 @@ export default function ContactPage() {
               </div>
               <div>
                 <p className="text-xs text-white/50 uppercase tracking-widest font-bold">Email Inbox</p>
-                <p className="text-sm text-white font-mono mt-0.5 font-bold">osiamijnr@gmail.com</p>
+                <a href="mailto:contact@bestcreativehub.com" className="text-sm text-white font-mono mt-0.5 font-bold hover:text-amber-400 transition-colors block">contact@bestcreativehub.com</a>
               </div>
               <div className="pt-2">
                 <a

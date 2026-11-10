@@ -41,7 +41,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login', admi
     }
   }, [isOpen, initialMode]);
 
-  const ADMIN_EMAIL = 'osiamijnr@gmail.com';
+  const ADMIN_EMAIL = 'admin@bestcreativehub.com';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

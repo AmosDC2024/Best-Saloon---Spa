@@ -135,7 +135,7 @@ export default function Footer() {
               </p>
               <p className="flex items-center gap-2">
                 <Mail className="w-4 h-4 text-amber-500 shrink-0" />
-                <span>osiamijnr@gmail.com</span>
+                <a href="mailto:contact@bestcreativehub.com" className="hover:text-amber-400 transition-colors">contact@bestcreativehub.com</a>
               </p>
               <div className="pt-2 border-t border-white/5">
                 <p className="text-[11px] text-white/40">

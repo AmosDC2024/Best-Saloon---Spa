@@ -5,7 +5,7 @@ import { auth, db } from '../firebase';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { doc, getDoc, collection, query, where, onSnapshot } from 'firebase/firestore';
 
-const ADMIN_EMAIL = 'osiamijnr@gmail.com';
+const ADMIN_EMAIL = 'admin@bestcreativehub.com';
 const NOTIFICATION_SOUND = 'https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3';
 
 interface HubContextType {
