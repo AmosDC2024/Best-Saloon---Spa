@@ -6,7 +6,7 @@ import { collection, query, orderBy, onSnapshot, updateDoc, doc, where } from 'f
 import { db } from '../firebase';
 import { handleFirestoreError, OperationType } from '../lib/firebaseUtils';
 import { format } from 'date-fns';
-import { Clock, CheckCircle, Calendar, User, Scissors, Loader2 } from 'lucide-react';
+import { Clock, CheckCircle, Calendar, User, Scissors, Loader2, CreditCard, AlertTriangle } from 'lucide-react';
 
 interface Booking {
   id: string;
@@ -16,8 +16,15 @@ interface Booking {
   category: string;
   date: string;
   time: string;
-  status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
+  price?: string;
+  status: 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'rescheduled';
   createdAt: any;
+  paymentStatus?: 'paid_deposit' | string;
+  paymentReference?: string;
+  depositPaidNaira?: number;
+  balanceDueNaira?: number;
+  commitmentPercentage?: number;
+  latePaymentConflict?: boolean;
 }
 
 export default function AdminSchedule() {
@@ -140,23 +147,44 @@ export default function AdminSchedule() {
                     {booking.time}
                   </div>
                   <div>
-                    <div className="flex items-center gap-2 mb-1">
+                    <div className="flex items-center gap-3 mb-1">
                       <User className="w-4 h-4 text-white/40" />
                       <h3 className="font-bold text-lg md:text-xl">{booking.userName}</h3>
+                      {booking.price && (
+                        <span className="text-xs font-black text-amber-400 bg-amber-400/10 px-2.5 py-0.5 rounded-full">
+                          {booking.price}
+                        </span>
+                      )}
                     </div>
-                    <div className="flex items-center gap-2 text-white/40 text-xs md:text-sm mb-4">
-                      <Scissors className="w-4 h-4" />
+                    <div className="flex items-center gap-2 text-white/40 text-xs md:text-sm mb-3">
+                      <Scissors className="w-4 h-4 text-amber-400" />
                       <span>{booking.serviceName}</span>
                     </div>
-                    <div className="flex items-center gap-2">
+
+                    <div className="flex flex-wrap items-center gap-2 mb-2">
+                      {/* Booking Status Badge */}
                       <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest ${
-                        booking.status === 'confirmed' ? 'bg-emerald-500/20 text-emerald-500' : 
+                        booking.status === 'confirmed' ? 'bg-emerald-500/20 text-emerald-400' : 
                         booking.status === 'completed' ? 'bg-white/10 text-white/40' : 
-                        booking.status === 'cancelled' ? 'bg-red-500/20 text-red-500' :
-                        'bg-amber-500/20 text-amber-500'
+                        booking.status === 'cancelled' ? 'bg-red-500/20 text-red-400' :
+                        booking.status === 'rescheduled' ? 'bg-blue-500/20 text-blue-400' :
+                        'bg-amber-500/20 text-amber-400'
                       }`}>
-                        {booking.status}
+                        Booking: {booking.status === 'pending' ? 'Pending Review' : booking.status}
                       </span>
+
+                      {/* Payment Status Badge */}
+                      {booking.paymentStatus === 'paid_deposit' ? (
+                        <span className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/30 rounded-full text-[10px] font-black uppercase tracking-widest text-emerald-400 flex items-center gap-1.5">
+                          <CreditCard className="w-3 h-3 text-emerald-400" />
+                          Deposit Paid (30%)
+                        </span>
+                      ) : (
+                        <span className="px-3 py-1 bg-white/5 rounded-full text-[10px] font-bold uppercase tracking-widest text-white/40">
+                          Unpaid / Direct
+                        </span>
+                      )}
+
                       {booking.status === 'completed' && (
                         <span className="flex items-center gap-1 text-emerald-500 text-[10px] font-bold uppercase tracking-widest">
                           <CheckCircle className="w-3 h-3" />
@@ -164,6 +192,27 @@ export default function AdminSchedule() {
                         </span>
                       )}
                     </div>
+
+                    {/* Financial Summary */}
+                    {booking.depositPaidNaira !== undefined && (
+                      <div className="mt-2 text-xs text-white/60 flex flex-wrap gap-x-4 gap-y-1">
+                        <span>Paid: <strong className="text-emerald-400">₦{booking.depositPaidNaira.toLocaleString()}</strong></span>
+                        {booking.balanceDueNaira !== undefined && (
+                          <span>Balance: <strong className="text-amber-300">₦{booking.balanceDueNaira.toLocaleString()}</strong></span>
+                        )}
+                        {booking.paymentReference && (
+                          <span className="text-white/40 text-[11px] font-mono">Ref: {booking.paymentReference}</span>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Late Payment Warning */}
+                    {booking.latePaymentConflict && (
+                      <div className="mt-2.5 px-3 py-2 bg-rose-500/10 border border-rose-500/30 rounded-xl text-rose-300 text-[11px] flex items-center gap-2">
+                        <AlertTriangle className="w-3.5 h-3.5 text-rose-400 shrink-0" />
+                        <span><strong>Late Payment Slot Conflict:</strong> Review schedule or contact client to arrange alternative time.</span>
+                      </div>
+                    )}
                   </div>
                 </div>
 

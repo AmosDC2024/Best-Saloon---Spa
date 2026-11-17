@@ -7,7 +7,7 @@ import { collection, query, orderBy, onSnapshot, updateDoc, doc, deleteDoc } fro
 import { db, auth } from '../firebase';
 import { handleFirestoreError, OperationType } from '../lib/firebaseUtils';
 import { format } from 'date-fns';
-import { Mail, Calendar, CheckCircle, Clock, Trash2, X, MessageSquare, User, TrendingUp, Inbox, ShieldCheck, Scissors } from 'lucide-react';
+import { Mail, Calendar, CheckCircle, Clock, Trash2, X, MessageSquare, User, TrendingUp, Inbox, ShieldCheck, Scissors, CreditCard, AlertTriangle, AlertCircle } from 'lucide-react';
 import AdminUsers from './AdminUsers';
 import AdminSchedule from './AdminSchedule';
 import { toast } from 'sonner';
@@ -20,6 +20,7 @@ interface Booking {
   category: string;
   date: string;
   time: string;
+  price?: string;
   status: 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'rescheduled';
   createdAt: any;
   rescheduleAccepted?: boolean;
@@ -27,6 +28,16 @@ interface Booking {
   rescheduleSuggestedDate?: string;
   rescheduleSuggestedTime?: string;
   rescheduleMessage?: string;
+  // Payment tracking fields (from Paystack verification)
+  paymentStatus?: 'paid_deposit' | string;
+  paymentReference?: string;
+  depositPaidNaira?: number;
+  balanceDueNaira?: number;
+  commitmentPercentage?: number;
+  paidAmountKobo?: number;
+  paymentChannel?: string;
+  paidAt?: string;
+  latePaymentConflict?: boolean;
 }
 
 interface ContactMessage {
@@ -50,6 +61,11 @@ export default function AdminDashboard() {
   const [suggestedTime, setSuggestedTime] = useState('');
   const [isRescheduling, setIsRescheduling] = useState(false);
   const [rescheduleSuccess, setRescheduleSuccess] = useState(false);
+  const [deleteModal, setDeleteModal] = useState<{
+    isOpen: boolean;
+    booking: Booking | null;
+    isDeleting: boolean;
+  }>({ isOpen: false, booking: null, isDeleting: false });
 
   useEffect(() => {
     // Listen for Bookings
@@ -79,10 +95,16 @@ export default function AdminDashboard() {
 
   const updateBookingStatus = async (id: string, status: string, booking?: Booking) => {
     try {
+      // Cancellation uses the server-side endpoint to atomically release the slot
+      if (status === 'cancelled') {
+        await cancelBookingViaServer(id);
+        return;
+      }
+
       const updates: any = { status };
       
-      // Clear reschedule flags if confirmed or cancelled
-      if (status === 'confirmed' || status === 'cancelled') {
+      // Clear reschedule flags if confirmed
+      if (status === 'confirmed') {
         updates.rescheduleAccepted = false;
         updates.rescheduleDeclined = false;
       }
@@ -117,6 +139,47 @@ export default function AdminDashboard() {
       }
     } catch (error) {
       handleFirestoreError(error, OperationType.UPDATE, `bookings/${id}`);
+    }
+  };
+
+  /**
+   * Cancels a booking through the secure server-side endpoint,
+   * which atomically releases the associated slot document.
+   */
+  const cancelBookingViaServer = async (bookingId: string) => {
+    try {
+      const currentUser = auth.currentUser;
+      if (!currentUser) {
+        toast.error('You must be logged in to cancel bookings.');
+        return;
+      }
+
+      const idToken = await currentUser.getIdToken();
+      const response = await fetch('/api/booking/cancel', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${idToken}`,
+        },
+        body: JSON.stringify({ bookingId }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.error('Cancel API error:', data);
+        toast.error(data.error || 'Failed to cancel booking.');
+        return;
+      }
+
+      if (data.slotReleased) {
+        toast.success('Booking cancelled and appointment slot released.');
+      } else {
+        toast.success(data.message || 'Booking cancelled.');
+      }
+    } catch (error) {
+      console.error('Failed to cancel booking via server:', error);
+      toast.error('Could not reach the cancellation server. Please try again.');
     }
   };
 
@@ -188,6 +251,58 @@ export default function AdminDashboard() {
       await updateDoc(doc(db, 'contacts', id), { status });
     } catch (error) {
       handleFirestoreError(error, OperationType.UPDATE, `contacts/${id}`);
+    }
+  };
+
+  const promptDeleteBooking = (booking: Booking) => {
+    setDeleteModal({ isOpen: true, booking, isDeleting: false });
+  };
+
+  const handleConfirmDeleteBooking = async () => {
+    if (!deleteModal.booking) return;
+    const targetBooking = deleteModal.booking;
+    setDeleteModal((prev) => ({ ...prev, isDeleting: true }));
+
+    try {
+      // 1. If the booking has an associated appointment slot, release it via server
+      if (targetBooking.date && targetBooking.time) {
+        try {
+          const currentUser = auth.currentUser;
+          if (currentUser) {
+            const idToken = await currentUser.getIdToken();
+            await fetch('/api/booking/cancel', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${idToken}`,
+              },
+              body: JSON.stringify({ bookingId: targetBooking.id }),
+            });
+          }
+        } catch (slotErr) {
+          console.warn('Could not release slot prior to booking delete:', slotErr);
+        }
+      }
+
+      // 2. Delete booking document from Firestore.
+      // Notice: The 'payments' collection document is strictly PRESERVED
+      // for immutable financial auditing and accounting.
+      await deleteDoc(doc(db, 'bookings', targetBooking.id));
+
+      if (
+        targetBooking.paymentStatus === 'paid_deposit' ||
+        (targetBooking.depositPaidNaira && targetBooking.depositPaidNaira > 0)
+      ) {
+        toast.success('Paid booking removed from schedule. Paystack payment record preserved in audit logs.');
+      } else {
+        toast.success('Booking deleted.');
+      }
+
+      setDeleteModal({ isOpen: false, booking: null, isDeleting: false });
+    } catch (error) {
+      console.error('Failed to delete booking:', error);
+      toast.error('Failed to delete booking document.');
+      setDeleteModal((prev) => ({ ...prev, isDeleting: false }));
     }
   };
 
@@ -416,15 +531,48 @@ export default function AdminDashboard() {
                       <User className="w-6 h-6" />
                     </div>
                     <div>
-                      <h3 className="font-bold text-lg">{booking.userName}</h3>
-                      <p className="text-white/40 text-sm mb-2">{booking.userEmail}</p>
-                      <div className="flex flex-wrap gap-3">
+                      <div className="flex items-center gap-3 mb-1">
+                        <h3 className="font-bold text-lg">{booking.userName}</h3>
+                        {booking.price && (
+                          <span className="text-xs font-black text-amber-400 bg-amber-400/10 px-2.5 py-0.5 rounded-full">
+                            {booking.price}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-white/40 text-sm mb-3">{booking.userEmail}</p>
+
+                      {/* Service & Schedule Badges */}
+                      <div className="flex flex-wrap gap-2 mb-3">
                         <span className="px-3 py-1 bg-white/5 rounded-full text-[10px] font-bold uppercase tracking-widest text-amber-500">
                           {booking.serviceName}
                         </span>
                         <span className="px-3 py-1 bg-white/5 rounded-full text-[10px] font-bold uppercase tracking-widest text-white/60">
                           {booking.date} @ {booking.time}
                         </span>
+
+                        {/* Booking Status Badge */}
+                        <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
+                          booking.status === 'confirmed' ? 'bg-emerald-500/20 text-emerald-400' :
+                          booking.status === 'completed' ? 'bg-white/10 text-white/50' :
+                          booking.status === 'cancelled' ? 'bg-rose-500/20 text-rose-400' :
+                          booking.status === 'rescheduled' ? 'bg-blue-500/20 text-blue-400' :
+                          'bg-amber-500/20 text-amber-400'
+                        }`}>
+                          Booking: {booking.status === 'pending' ? 'Pending Review' : booking.status}
+                        </span>
+
+                        {/* Payment Status Badge */}
+                        {booking.paymentStatus === 'paid_deposit' ? (
+                          <span className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/30 rounded-full text-[10px] font-black uppercase tracking-widest text-emerald-400 flex items-center gap-1.5">
+                            <CreditCard className="w-3 h-3 text-emerald-400" />
+                            Deposit Paid (30%)
+                          </span>
+                        ) : (
+                          <span className="px-3 py-1 bg-white/5 rounded-full text-[10px] font-bold uppercase tracking-widest text-white/40">
+                            Unpaid / Legacy
+                          </span>
+                        )}
+
                         {booking.status === 'rescheduled' && (
                           <span className="px-3 py-1 bg-blue-500/10 rounded-full text-[10px] font-black uppercase tracking-widest text-blue-400">
                             Reschedule Sent
@@ -441,6 +589,41 @@ export default function AdminDashboard() {
                           </span>
                         )}
                       </div>
+
+                      {/* Payment Financial Breakdown (When Deposit Was Paid) */}
+                      {booking.depositPaidNaira !== undefined && (
+                        <div className="mt-2.5 p-3 rounded-xl bg-white/[0.03] border border-white/5 flex flex-wrap items-center gap-x-5 gap-y-1.5 text-xs">
+                          <div className="text-white/60">
+                            <span className="text-white/40 font-medium">Deposit Paid (30%):</span>{' '}
+                            <strong className="text-emerald-400 font-bold">₦{booking.depositPaidNaira.toLocaleString()}</strong>
+                          </div>
+                          {booking.balanceDueNaira !== undefined && (
+                            <div className="text-white/60">
+                              <span className="text-white/40 font-medium">Balance at Salon (70%):</span>{' '}
+                              <strong className="text-amber-300 font-bold">₦{booking.balanceDueNaira.toLocaleString()}</strong>
+                            </div>
+                          )}
+                          {booking.paymentReference && (
+                            <div className="text-white/40 text-[11px] font-mono">
+                              Ref: <span className="text-white/60 select-all">{booking.paymentReference}</span>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Late-Payment Slot Conflict Warning Banner */}
+                      {booking.latePaymentConflict && (
+                        <div className="mt-3 p-3.5 bg-rose-500/10 border border-rose-500/40 rounded-xl text-xs text-rose-300 flex items-start gap-2.5">
+                          <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+                          <div>
+                            <strong className="block text-rose-200 uppercase tracking-wider font-black">
+                              ⚠️ Late-Payment Slot Conflict Notice
+                            </strong>
+                            The customer completed their 30% Paystack deposit after their 10-minute reservation expired, and the original slot had a conflict. 
+                            <strong> Do not cancel or refund automatically.</strong> Please use the Reschedule action below or contact <span className="underline font-bold text-white">{booking.userEmail}</span> to arrange a mutually agreed appointment time.
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -482,7 +665,7 @@ export default function AdminDashboard() {
                       </button>
                     )}
                     <button
-                      onClick={() => deleteItem(booking.id, 'bookings')}
+                      onClick={() => promptDeleteBooking(booking)}
                       className="p-3 bg-white/5 text-white/40 rounded-xl hover:bg-red-500 hover:text-white transition-all group"
                       title="Delete Permanently"
                     >
@@ -627,6 +810,121 @@ export default function AdminDashboard() {
                   </>
                 ) : (
                   'Send Reschedule Email'
+                )}
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteModal.isOpen && deleteModal.booking && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-zinc-900 w-full max-w-lg rounded-3xl border border-white/10 p-6 sm:p-8 shadow-2xl"
+          >
+            <div className="flex justify-between items-center mb-6">
+              <div className="flex items-center gap-3">
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                  deleteModal.booking.paymentStatus === 'paid_deposit' || 
+                  (deleteModal.booking.depositPaidNaira !== undefined && deleteModal.booking.depositPaidNaira > 0)
+                    ? 'bg-rose-500/20 text-rose-400'
+                    : 'bg-white/10 text-white/60'
+                }`}>
+                  <Trash2 className="w-5 h-5" />
+                </div>
+                <h2 className="text-xl sm:text-2xl font-black uppercase tracking-tight text-white">
+                  Delete <span className="text-rose-500">Booking</span>
+                </h2>
+              </div>
+              <button 
+                onClick={() => setDeleteModal({ isOpen: false, booking: null, isDeleting: false })} 
+                className="text-white/40 hover:text-white transition-colors"
+                disabled={deleteModal.isDeleting}
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            {/* Paid Booking Financial Audit Warning */}
+            {deleteModal.booking.paymentStatus === 'paid_deposit' ||
+            (deleteModal.booking.depositPaidNaira !== undefined && deleteModal.booking.depositPaidNaira > 0) ? (
+              <div className="space-y-4">
+                <div className="p-4 bg-rose-500/10 border border-rose-500/30 rounded-2xl text-xs text-rose-300">
+                  <div className="flex items-start gap-2.5">
+                    <AlertTriangle className="w-5 h-5 text-rose-400 shrink-0 mt-0.5" />
+                    <div className="space-y-1.5 leading-relaxed">
+                      <strong className="block text-rose-200 text-sm uppercase tracking-wider font-black">
+                        Protected Paid Booking
+                      </strong>
+                      <p>
+                        This client has paid a verified 30% commitment deposit of{' '}
+                        <strong className="text-white font-bold">
+                          ₦{deleteModal.booking.depositPaidNaira?.toLocaleString()}
+                        </strong>
+                        .
+                      </p>
+                      <p className="text-white/70">
+                        <strong>Financial Auditing Notice:</strong> Deleting this record removes it from the active bookings schedule. 
+                        The payment transaction document and audit trail are <strong>permanently preserved</strong> in the system database for bookkeeping and reconciliation.
+                      </p>
+                      <p className="text-rose-400/90 font-medium italic">
+                        * No automatic refund or deposit forfeiture is performed. Please manage client refunds manually if required.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-black/40 border border-white/5 rounded-xl p-3.5 text-xs space-y-1 text-white/70">
+                  <div><span className="text-white/40">Client:</span> <strong className="text-white">{deleteModal.booking.userName}</strong> ({deleteModal.booking.userEmail})</div>
+                  <div><span className="text-white/40">Service:</span> {deleteModal.booking.serviceName}</div>
+                  <div><span className="text-white/40">Appointment:</span> {deleteModal.booking.date} @ {deleteModal.booking.time}</div>
+                  {deleteModal.booking.paymentReference && (
+                    <div className="font-mono text-[11px] text-white/50 pt-1">
+                      Paystack Ref: <span className="text-amber-400 select-all">{deleteModal.booking.paymentReference}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="p-4 bg-white/5 border border-white/10 rounded-2xl text-sm text-white/80">
+                <p>
+                  Are you sure you want to permanently delete this booking for{' '}
+                  <strong className="text-white">{deleteModal.booking.userName}</strong> ({deleteModal.booking.serviceName})?
+                </p>
+                <p className="text-xs text-white/40 mt-2">
+                  Scheduled for {deleteModal.booking.date} @ {deleteModal.booking.time}.
+                </p>
+              </div>
+            )}
+
+            <div className="flex gap-3 mt-6">
+              <button
+                type="button"
+                onClick={() => setDeleteModal({ isOpen: false, booking: null, isDeleting: false })}
+                disabled={deleteModal.isDeleting}
+                className="flex-1 py-3.5 bg-white/5 hover:bg-white/10 text-white/70 hover:text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-all cursor-pointer disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDeleteBooking}
+                disabled={deleteModal.isDeleting}
+                className="flex-1 py-3.5 bg-rose-600 hover:bg-rose-500 text-white text-xs font-black uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-rose-600/20 disabled:opacity-50"
+              >
+                {deleteModal.isDeleting ? (
+                  <>
+                    <Clock className="w-4 h-4 animate-spin" />
+                    <span>Removing...</span>
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-4 h-4" />
+                    <span>Confirm Delete</span>
+                  </>
                 )}
               </button>
             </div>

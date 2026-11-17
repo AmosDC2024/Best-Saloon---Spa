@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Calendar, Clock, CheckCircle2, Clock3, Scissors, LogOut, Check, X } from 'lucide-react';
+import { Calendar, Clock, CheckCircle2, Clock3, Scissors, LogOut, Check, X, CreditCard, ShieldCheck, AlertCircle } from 'lucide-react';
 import { auth, db } from '../firebase';
 import { collection, query, where, onSnapshot, orderBy, updateDoc, doc, deleteDoc } from 'firebase/firestore';
 import { onAuthStateChanged, User as FirebaseUser, signOut } from 'firebase/auth';
@@ -25,26 +25,41 @@ export default function AppointmentHistory() {
     }
   };
 
-  const handleRescheduleAction = async (bookingId: string, action: 'accept' | 'decline', booking: any) => {
+  const handleRescheduleAction = async (bookingId: string, action: 'accept' | 'decline') => {
     setActionLoading(bookingId);
     try {
+      const currentUser = auth.currentUser;
+      if (!currentUser) {
+        toast.error('You must be logged in to manage your appointments.');
+        return;
+      }
+
+      const idToken = await currentUser.getIdToken();
+      const response = await fetch('/api/booking/reschedule', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${idToken}`,
+        },
+        body: JSON.stringify({ bookingId, action }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        toast.error(data.error || 'Failed to update reschedule status.');
+        return;
+      }
+
       if (action === 'accept') {
-        await updateDoc(doc(db, 'bookings', bookingId), {
-          status: 'pending', // Set back to pending so admin can confirm
-          date: booking.rescheduleSuggestedDate,
-          time: booking.rescheduleSuggestedTime,
-          rescheduleAccepted: true
-        });
-        toast.success('Reschedule accepted! The admin will now confirm your appointment for the new time.');
+        toast.success(
+          data.message || 'Reschedule accepted! The new time is secured and awaiting admin confirmation.'
+        );
       } else {
-        await updateDoc(doc(db, 'bookings', bookingId), {
-          status: 'cancelled',
-          rescheduleDeclined: true
-        });
-        toast.error('Reschedule request declined. The appointment has been cancelled.');
+        toast.error(data.message || 'Reschedule request declined. The appointment has been cancelled.');
       }
     } catch (error) {
-      handleFirestoreError(error, OperationType.UPDATE, `bookings/${bookingId}`);
+      console.error('Reschedule API error:', error);
+      toast.error('Could not reach the server. Please check your internet connection and try again.');
     } finally {
       setActionLoading(null);
     }
@@ -150,42 +165,87 @@ export default function AppointmentHistory() {
                     <Scissors className="w-6 h-6 text-amber-500" />
                   </div>
                   <div>
-                    <h4 className="text-lg font-bold text-white uppercase tracking-tight mb-1">
-                      {booking.serviceName}
-                    </h4>
-                    <p className="text-amber-500 text-[10px] font-bold uppercase tracking-widest mb-3">
+                    <div className="flex items-center gap-3 mb-1">
+                      <h4 className="text-lg font-bold text-white uppercase tracking-tight">
+                        {booking.serviceName}
+                      </h4>
+                      {booking.price && (
+                        <span className="text-xs font-black text-amber-400 bg-amber-400/10 px-2.5 py-0.5 rounded-full">
+                          {booking.price}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-amber-500 text-[10px] font-bold uppercase tracking-widest mb-2">
                       {booking.category}
                     </p>
-                    <div className="flex flex-wrap gap-4 text-white/40 text-xs uppercase tracking-widest font-bold">
+                    <div className="flex flex-wrap gap-4 text-white/40 text-xs uppercase tracking-widest font-bold mb-3">
                       <div className="flex items-center gap-2">
-                        <Calendar className="w-3 h-3" />
+                        <Calendar className="w-3 h-3 text-amber-400" />
                         {format(new Date(booking.date), 'PPP')}
                       </div>
                       <div className="flex items-center gap-2">
-                        <Clock className="w-3 h-3" />
+                        <Clock className="w-3 h-3 text-amber-400" />
                         {booking.time}
                       </div>
                     </div>
+
+                    {/* Payment Information */}
+                    {booking.depositPaidNaira !== undefined && (
+                      <div className="p-3 bg-white/[0.03] border border-white/5 rounded-xl text-xs space-y-1 max-w-md">
+                        <div className="flex items-center justify-between text-white/70">
+                          <span>30% Deposit Paid:</span>
+                          <strong className="text-emerald-400">₦{booking.depositPaidNaira.toLocaleString()}</strong>
+                        </div>
+                        {booking.balanceDueNaira !== undefined && (
+                          <div className="flex items-center justify-between text-white/60">
+                            <span>Balance Due at Salon (70%):</span>
+                            <strong className="text-amber-300">₦{booking.balanceDueNaira.toLocaleString()}</strong>
+                          </div>
+                        )}
+                        {booking.paymentReference && (
+                          <div className="text-[10px] text-white/40 font-mono pt-0.5">
+                            Ref: {booking.paymentReference}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Late Payment Notice */}
+                    {booking.latePaymentConflict && (
+                      <div className="mt-2.5 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-300 flex items-start gap-2">
+                        <AlertCircle className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
+                        <span>Your deposit was safely received. Due to a schedule conflict, our admin team will contact you directly to agree on an updated appointment time.</span>
+                      </div>
+                    )}
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between md:justify-end gap-6 border-t md:border-t-0 border-white/5 pt-4 md:pt-0">
-                  <div className="flex flex-col items-end">
-                    <span className="text-[10px] text-white/40 uppercase tracking-widest font-bold mb-1">Status</span>
+                <div className="flex flex-col sm:flex-row md:flex-col items-start sm:items-center md:items-end justify-between md:justify-center gap-3 border-t md:border-t-0 border-white/5 pt-4 md:pt-0">
+                  {/* Payment Badge */}
+                  {booking.paymentStatus === 'paid_deposit' && (
+                    <div className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                      <CreditCard className="w-3 h-3" />
+                      Deposit Paid
+                    </div>
+                  )}
+
+                  {/* Booking Status Badge */}
+                  <div className="flex flex-col items-start md:items-end">
+                    <span className="text-[10px] text-white/40 uppercase tracking-widest font-bold mb-1">Appointment Status</span>
                     <div className={cn(
                       "flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest",
                       booking.status === 'pending' 
-                        ? "bg-amber-500/10 text-amber-500" 
+                        ? "bg-amber-500/10 text-amber-400" 
                         : booking.status === 'rescheduled'
                         ? "bg-blue-500/10 text-blue-400"
                         : booking.status === 'cancelled'
-                        ? "bg-red-500/10 text-red-500"
-                        : "bg-emerald-500/10 text-emerald-500"
+                        ? "bg-rose-500/10 text-rose-400"
+                        : "bg-emerald-500/10 text-emerald-400"
                     )}>
                       {booking.status === 'pending' ? (
                         <>
                           <Clock3 className="w-3 h-3" />
-                          Pending
+                          Pending Review
                         </>
                       ) : booking.status === 'rescheduled' ? (
                         <>
@@ -226,7 +286,7 @@ export default function AppointmentHistory() {
                     
                     <div className="mt-6 flex gap-3">
                       <button
-                        onClick={() => handleRescheduleAction(booking.id, 'accept', booking)}
+                        onClick={() => handleRescheduleAction(booking.id, 'accept')}
                         disabled={actionLoading === booking.id}
                         className="flex-1 flex items-center justify-center gap-2 py-3 bg-emerald-500 text-black text-[10px] font-black rounded-xl hover:bg-emerald-400 transition-all uppercase tracking-widest disabled:opacity-50"
                       >
@@ -234,7 +294,7 @@ export default function AppointmentHistory() {
                         Accept New Time
                       </button>
                       <button
-                        onClick={() => handleRescheduleAction(booking.id, 'decline', booking)}
+                        onClick={() => handleRescheduleAction(booking.id, 'decline')}
                         disabled={actionLoading === booking.id}
                         className="flex-1 flex items-center justify-center gap-2 py-3 bg-red-500/10 text-red-500 text-[10px] font-black rounded-xl hover:bg-red-500 hover:text-white transition-all uppercase tracking-widest border border-red-500/20 disabled:opacity-50"
                       >
